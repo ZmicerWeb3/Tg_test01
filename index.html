@@ -7,21 +7,36 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; background-color: #f0f0f0; }
-        input, button, select { margin: 5px 0; padding: 8px; width: 100%; }
+        input, button, select { margin: 5px 0; padding: 8px; width: 100%; box-sizing: border-box; }
         #timerDisplay { font-size: 1.2em; color: #333; }
         .day-section { margin-top: 10px; }
+        .timer-buttons { display: flex; gap: 10px; }
+        .timer-buttons button {
+            width: 80px; /* Фиксированная ширина для круглых кнопок */
+            height: 80px; /* Высота равна ширине для круглой формы */
+            font-size: 1.5em; /* Увеличение текста в 1,5 раза */
+            border-radius: 50%; /* Круглая форма */
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+        #startButton { background-color: #228B22; }
+        #stopButton { background-color: #FF4500; }
     </style>
 </head>
 <body>
     <h2>Введи время (чч:мм)</h2>
     <input type="text" id="timeInput" placeholder="Например, 02:30">
     <select id="labelSelect">
+        <option value="Сон" selected>Сон</option>
+        <option value="Кормление">Кормление</option>
         <option value="Общее">Общее</option>
-        <option value="Сон">Сон</option>
     </select>
+    <div class="timer-buttons">
+        <button id="startButton" onclick="startTimer()">Старт</button>
+        <button id="stopButton" onclick="stopTimer()" disabled>Стоп</button>
+    </div>
     <button onclick="addTime()">Добавить</button>
-    <button onclick="startTimer()">Старт</button>
-    <button onclick="stopTimer()" disabled>Стоп</button>
     <button onclick="editTime()">Редактировать</button>
     <button onclick="resetAll()">Сбросить все данные</button>
     <p>Таймер: <span id="timerDisplay">00:00</span></p>
@@ -39,13 +54,11 @@
             updateTimeList();
         };
 
-        // Форматирование даты в YYYY-MM-DD
         function getCurrentDate() {
             const now = new Date();
             return now.toISOString().split("T")[0];
         }
 
-        // Добавление времени вручную
         function addTime() {
             const input = document.getElementById("timeInput").value;
             const label = document.getElementById("labelSelect").value;
@@ -63,19 +76,17 @@
             }
         }
 
-        // Старт таймера
         function startTimer() {
             if (!timerInterval) {
                 timerInterval = setInterval(() => {
                     timerSeconds++;
                     updateTimerDisplay();
                 }, 1000);
-                document.querySelector("button[onclick='startTimer()']").disabled = true;
-                document.querySelector("button[onclick='stopTimer()']").disabled = false;
+                document.getElementById("startButton").disabled = true;
+                document.getElementById("stopButton").disabled = false;
             }
         }
 
-        // Стоп таймера и запись времени
         function stopTimer() {
             if (timerInterval) {
                 clearInterval(timerInterval);
@@ -88,19 +99,17 @@
                 if (!timesByDate[date]) timesByDate[date] = [];
                 timesByDate[date].push({ minutes: totalMinutes, label });
                 saveAndUpdate();
-                document.querySelector("button[onclick='startTimer()']").disabled = false;
-                document.querySelector("button[onclick='stopTimer()']").disabled = true;
+                document.getElementById("startButton").disabled = false;
+                document.getElementById("stopButton").disabled = true;
             }
         }
 
-        // Обновление отображения таймера
         function updateTimerDisplay() {
             const minutes = Math.floor(timerSeconds / 60).toString().padStart(2, "0");
             const seconds = (timerSeconds % 60).toString().padStart(2, "0");
             document.getElementById("timerDisplay").innerText = `${minutes}:${seconds}`;
         }
 
-        // Редактирование времени
         function editTime() {
             const date = prompt("Введите дату для редактирования (YYYY-MM-DD):", getCurrentDate());
             if (!timesByDate[date]) return alert("Нет данных за эту дату.");
@@ -119,13 +128,11 @@
             }
         }
 
-        // Сохранение и обновление списка
         function saveAndUpdate() {
             localStorage.setItem("timesByDate", JSON.stringify(timesByDate));
             updateTimeList();
         }
 
-        // Обновление списка времён по дням
         function updateTimeList() {
             const container = document.getElementById("timeList");
             container.innerHTML = "";
@@ -144,14 +151,12 @@
             }
         }
 
-        // Форматирование минут в чч:мм
         function formatMinutes(mins) {
             const h = Math.floor(mins / 60).toString().padStart(2, "0");
             const m = (mins % 60).toString().padStart(2, "0");
             return `${h}:${m}`;
         }
 
-        // Сброс всех данных
         function resetAll() {
             timesByDate = {};
             localStorage.removeItem("timesByDate");
