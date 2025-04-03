@@ -1,0 +1,72 @@
+html
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сумма времени</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 8px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h2>Введи время (чч:мм)</h2>
+    <input type="text" id="timeInput" placeholder="Например, 02:30">
+    <button onclick="addTime()">Добавить</button>
+    <button onclick="showTotal()">Показать сумму</button>
+    <p>Добавленные времена: <span id="timeList"></span></p>
+    <p>Сумма: <span id="totalTime">00:00</span></p>
+
+    <script>
+        let times = []; // Массив для хранения времени в минутах
+
+        // Инициализация Telegram Web App
+        window.Telegram.WebApp.ready();
+        Telegram.WebApp.MainButton.hide(); // Скрываем основную кнопку Telegram
+
+        // Функция добавления времени
+        function addTime() {
+            const input = document.getElementById("timeInput").value;
+            const regex = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/; // Проверка формата чч:мм
+            if (regex.test(input)) {
+                const [hours, minutes] = input.split(":").map(Number);
+                const totalMinutes = hours * 60 + minutes;
+                times.push(totalMinutes);
+                updateTimeList();
+                document.getElementById("timeInput").value = "";
+            } else {
+                alert("Введите время в формате чч:мм (например, 02:30)");
+            }
+        }
+
+        // Обновление списка введённых времён
+        function updateTimeList() {
+            const timeList = times.map(mins => {
+                const h = Math.floor(mins / 60).toString().padStart(2, "0");
+                const m = (mins % 60).toString().padStart(2, "0");
+                return `${h}:${m}`;
+            });
+            document.getElementById("timeList").innerText = timeList.join(", ");
+        }
+
+        // Подсчёт и отображение суммы времени
+        function showTotal() {
+            const totalMinutes = times.reduce((sum, mins) => sum + mins, 0);
+            const hours = Math.floor(totalMinutes / 60).toString().padStart(2, "0");
+            const minutes = (totalMinutes % 60).toString().padStart(2, "0");
+            document.getElementById("totalTime").innerText = `${hours}:${minutes}`;
+        }
+    </script>
+</body>
+</html>
