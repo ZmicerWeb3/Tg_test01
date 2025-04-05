@@ -134,7 +134,7 @@
         }
 
         function saveToServer(date, minutes, label) {
-            fetch("http://localhost:3000/save-time", {
+            fetch("https://f9ae-109-123-246-190.ngrok-free.app/save-time", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ date, minutes, label })
@@ -145,7 +145,7 @@
         }
 
         function fetchTimesFromServer() {
-            fetch("http://localhost:3000/get-times")
+            fetch("https://f9ae-109-123-246-190.ngrok-free.app/get-times")
             .then(response => response.json())
             .then(data => {
                 timesByDate = {};
@@ -201,7 +201,7 @@
         }
 
         function resetAll() {
-            fetch("http://localhost:3000/reset", { method: "POST" })
+            fetch("https://f9ae-109-123-246-190.ngrok-free.app/reset", { method: "POST" })
             .then(() => {
                 timesByDate = {};
                 updateTimeList();
