@@ -11,17 +11,17 @@
         .day-section { margin-top: 10px; }
         .timer-buttons { 
             display: flex; 
-            justify-content: center; /* Центрирование кнопок */
+            justify-content: center; 
             gap: 10px; 
             margin-bottom: 10px; 
         }
         .timer-buttons button {
             width: 80px; height: 80px; font-size: 1.5em; border-radius: 50%; border: none; color: white; cursor: pointer;
         }
-        #startButton.active { background-color: #228B22; } /* Зелёный активный */
-        #startButton.inactive { background-color: #808080; } /* Серый неактивный */
-        #stopButton.active { background-color: #FF4500; } /* Красный активный */
-        #stopButton.inactive { background-color: #808080; } /* Серый неактивный */
+        #startButton.active { background-color: #228B22; }
+        #startButton.inactive { background-color: #808080; }
+        #stopButton.active { background-color: #FF4500; }
+        #stopButton.inactive { background-color: #808080; }
         #timerDisplay { 
             font-size: 2em; 
             font-weight: bold; 
@@ -31,7 +31,7 @@
             display: block; 
         }
         #timerDisplay.active { 
-            border: 3px solid #228B22; /* Зелёная рамка при запуске */
+            border: 3px solid #228B22; 
             border-radius: 10px; 
         }
     </style>
@@ -55,15 +55,15 @@
     <div id="timeList"></div>
 
     <script>
-        let timesByDate = JSON.parse(localStorage.getItem("timesByDate")) || {};
         let timerInterval = null;
         let timerSeconds = 0;
+        let timesByDate = {};
 
         window.Telegram.WebApp.ready();
         Telegram.WebApp.MainButton.hide();
 
         window.onload = function() {
-            updateTimeList();
+            fetchTimesFromServer();
         };
 
         function getCurrentDate() {
@@ -78,9 +78,7 @@
                 const [hours, minutes] = input.split(":").map(Number);
                 const totalMinutes = hours * 60 + minutes;
                 const date = getCurrentDate();
-                if (!timesByDate[date]) timesByDate[date] = [];
-                timesByDate[date].push({ minutes: totalMinutes, label });
-                saveAndUpdate();
+                saveToServer(date, totalMinutes, label);
                 document.getElementById("timeInput").value = "";
             } else {
                 alert("Введите время!");
@@ -89,7 +87,7 @@
 
         function startTimer() {
             if (!timerInterval) {
-                Telegram.WebApp.HapticFeedback.impactOccurred("medium"); // Вибрация для Старт
+                Telegram.WebApp.HapticFeedback.impactOccurred("medium");
                 timerInterval = setInterval(() => {
                     timerSeconds++;
                     updateTimerDisplay();
@@ -102,13 +100,13 @@
                 stopBtn.classList.remove("inactive");
                 stopBtn.classList.add("active");
                 stopBtn.disabled = false;
-                document.getElementById("timerDisplay").classList.add("active"); // Зелёная рамка
+                document.getElementById("timerDisplay").classList.add("active");
             }
         }
 
         function stopTimer() {
             if (timerInterval) {
-                Telegram.WebApp.HapticFeedback.impactOccurred("medium"); // Вибрация для Стоп
+                Telegram.WebApp.HapticFeedback.impactOccurred("medium");
                 clearInterval(timerInterval);
                 timerInterval = null;
                 const totalMinutes = Math.floor(timerSeconds / 60);
@@ -116,9 +114,7 @@
                 updateTimerDisplay();
                 const date = getCurrentDate();
                 const label = document.getElementById("labelSelect").value;
-                if (!timesByDate[date]) timesByDate[date] = [];
-                timesByDate[date].push({ minutes: totalMinutes, label });
-                saveAndUpdate();
+                saveToServer(date, totalMinutes, label);
                 const startBtn = document.getElementById("startButton");
                 const stopBtn = document.getElementById("stopButton");
                 startBtn.classList.remove("inactive");
@@ -127,7 +123,7 @@
                 stopBtn.classList.remove("active");
                 stopBtn.classList.add("inactive");
                 stopBtn.disabled = true;
-                document.getElementById("timerDisplay").classList.remove("active"); // Убираем рамку
+                document.getElementById("timerDisplay").classList.remove("active");
             }
         }
 
@@ -137,27 +133,29 @@
             document.getElementById("timerDisplay").innerText = `${minutes}:${seconds}`;
         }
 
-        function editTime() {
-            const date = prompt("Введите дату для редактирования (YYYY-MM-DD):", getCurrentDate());
-            if (!timesByDate[date]) return alert("Нет данных за эту дату.");
-            const times = timesByDate[date];
-            const index = prompt(`Выберите запись для редактирования (0-${times.length - 1}):\n${times.map((t, i) => `${i}: ${formatMinutes(t.minutes)} (${t.label})`).join("\n")}`);
-            if (index !== null && times[index]) {
-                const newTime = prompt("Введите новое время (чч:мм):", formatMinutes(times[index].minutes));
-                const regex = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
-                if (regex.test(newTime)) {
-                    const [hours, minutes] = newTime.split(":").map(Number);
-                    times[index].minutes = hours * 60 + minutes;
-                    saveAndUpdate();
-                } else {
-                    alert("Неверный формат времени.");
-                }
-            }
+        function saveToServer(date, minutes, label) {
+            fetch("http://localhost:3000/save-time", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ date, minutes, label })
+            })
+            .then(response => response.json())
+            .then(() => fetchTimesFromServer())
+            .catch(err => console.error("Error:", err));
         }
 
-        function saveAndUpdate() {
-            localStorage.setItem("timesByDate", JSON.stringify(timesByDate));
-            updateTimeList();
+        function fetchTimesFromServer() {
+            fetch("http://localhost:3000/get-times")
+            .then(response => response.json())
+            .then(data => {
+                timesByDate = {};
+                data.forEach(record => {
+                    if (!timesByDate[record.date]) timesByDate[record.date] = [];
+                    timesByDate[record.date].push({ minutes: record.minutes, label: record.label });
+                });
+                updateTimeList();
+            })
+            .catch(err => console.error("Error fetching from server:", err));
         }
 
         function updateTimeList() {
@@ -184,12 +182,33 @@
             return `${h}:${m}`;
         }
 
+        function editTime() {
+            const date = prompt("Введите дату для редактирования (YYYY-MM-DD):", getCurrentDate());
+            if (!timesByDate[date]) return alert("Нет данных за эту дату.");
+            const times = timesByDate[date];
+            const index = prompt(`Выберите запись для редактирования (0-${times.length - 1}):\n${times.map((t, i) => `${i}: ${formatMinutes(t.minutes)} (${t.label})`).join("\n")}`);
+            if (index !== null && times[index]) {
+                const newTime = prompt("Введите новое время (чч:мм):", formatMinutes(times[index].minutes));
+                const regex = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
+                if (regex.test(newTime)) {
+                    const [hours, minutes] = newTime.split(":").map(Number);
+                    times[index].minutes = hours * 60 + minutes;
+                    saveToServer(date, times[index].minutes, times[index].label); // Обновляем на сервере
+                } else {
+                    alert("Неверный формат времени.");
+                }
+            }
+        }
+
         function resetAll() {
-            timesByDate = {};
-            localStorage.removeItem("timesByDate");
-            updateTimeList();
-            timerSeconds = 0;
-            updateTimerDisplay();
+            fetch("http://localhost:3000/reset", { method: "POST" })
+            .then(() => {
+                timesByDate = {};
+                updateTimeList();
+                timerSeconds = 0;
+                updateTimerDisplay();
+            })
+            .catch(err => console.error("Error resetting data:", err));
         }
     </script>
 </body>
