@@ -1,152 +1,121 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Сумма времени</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>Time Sum App</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f0f0f0; }
-        input, button, select { margin: 5px 0; padding: 8px; width: 100%; box-sizing: border-box; }
-        .day-section { margin-top: 10px; }
-        .timer-buttons { 
-            display: flex; 
-            justify-content: center; 
-            gap: 10px; 
-            margin-bottom: 10px; 
-        }
-        .timer-buttons button {
-            width: 80px; height: 80px; font-size: 1.5em; border-radius: 50%; border: none; color: white; cursor: pointer;
-        }
-        #startButton.active { background-color: #228B22; }
-        #startButton.inactive { background-color: #808080; }
-        #stopButton.active { background-color: #FF4500; }
-        #stopButton.inactive { background-color: #808080; }
-        #timerDisplay { 
-            font-size: 2em; 
-            font-weight: bold; 
-            text-align: center; 
-            padding: 10px; 
-            margin: 10px 0; 
-            display: block; 
-        }
-        #timerDisplay.active { 
-            border: 3px solid #228B22; 
-            border-radius: 10px; 
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f0f0f0; }
+        h1 { text-align: center; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #555; }
+        input, select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+        button:hover { background-color: #0056b3; }
+        #timer { font-size: 24px; margin: 20px 0; text-align: center; color: #333; }
+        #timeList { margin-top: 20px; }
+        .time-entry { padding: 10px; background-color: #f9f9f9; margin-bottom: 10px; border-radius: 4px; }
+        .date-group { margin-bottom: 20px; }
+        .date-header { font-weight: bold; color: #007bff; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <h2>Введи время (чч:мм)</h2>
-    <input type="time" id="timeInput" step="60" placeholder="Например, 02:30">
-    <select id="labelSelect">
-        <option value="Сон" selected>Сон</option>
-        <option value="Кормление">Кормление</option>
-        <option value="Общее">Общее</option>
-    </select>
-    <div class="timer-buttons">
-        <button id="startButton" class="active" onclick="startTimer()">Старт</button>
-        <button id="stopButton" class="inactive" onclick="stopTimer()" disabled>Стоп</button>
+    <div class="container">
+        <h1>Time Sum App</h1>
+        <div class="input-group">
+            <label for="dateInput">Date:</label>
+            <input type="date" id="dateInput">
+        </div>
+        <div class="input-group">
+            <label for="timeInput">Minutes:</label>
+            <input type="number" id="timeInput" min="0">
+        </div>
+        <div class="input-group">
+            <label for="labelInput">Label:</label>
+            <select id="labelInput">
+                <option value="Сон">Сон</option>
+                <option value="Кормление">Кормление</option>
+                <option value="Игра">Игра</option>
+                <option value="Прогулка">Прогулка</option>
+                <option value="Другое">Другое</option>
+            </select>
+        </div>
+        <button onclick="addTime()">Add Time</button>
+        <button onclick="startTimer()">Start Timer</button>
+        <button onclick="stopTimer()">Stop Timer</button>
+        <button onclick="resetAll()">Reset All</button>
+        <div id="timer">00:00</div>
+        <div id="timeList"></div>
     </div>
-    <span id="timerDisplay">00:00</span>
-    <button onclick="addTime()">Добавить</button>
-    <button onclick="editTime()">Редактировать</button>
-    <button onclick="resetAll()">Сбросить все данные</button>
-    <div id="timeList"></div>
 
     <script>
-        let timerInterval = null;
-        let timerSeconds = 0;
         let timesByDate = {};
+        let timerSeconds = 0;
+        let timerInterval = null;
+        const BASE_URL = "https://f9ae-109-123-246-190.ngrok-free.app"; // URL от ngrok
 
+        // Инициализация Telegram Mini App
         window.Telegram.WebApp.ready();
-        Telegram.WebApp.MainButton.hide();
 
-        window.onload = function() {
+        // Загрузка данных при старте
+        document.addEventListener("DOMContentLoaded", () => {
+            setDefaultDate();
             fetchTimesFromServer();
-        };
+        });
 
-        function getCurrentDate() {
-            const now = new Date();
-            return now.toISOString().split("T")[0];
+        // Установка сегодняшней даты по умолчанию
+        function setDefaultDate() {
+            const today = new Date().toISOString().split("T")[0];
+            document.getElementById("dateInput").value = today;
         }
 
+        // Добавление времени вручную
         function addTime() {
-            const input = document.getElementById("timeInput").value;
-            const label = document.getElementById("labelSelect").value;
-            if (input) {
-                const [hours, minutes] = input.split(":").map(Number);
-                const totalMinutes = hours * 60 + minutes;
-                const date = getCurrentDate();
-                saveToServer(date, totalMinutes, label);
-                document.getElementById("timeInput").value = "";
-            } else {
-                alert("Введите время!");
+            const date = document.getElementById("dateInput").value;
+            const minutes = parseInt(document.getElementById("timeInput").value);
+            const label = document.getElementById("labelInput").value;
+
+            if (!date || isNaN(minutes) || minutes <= 0) {
+                alert("Please enter a valid date and minutes!");
+                return;
             }
+
+            saveToServer(date, minutes, label);
         }
 
-        function startTimer() {
-            if (!timerInterval) {
-                Telegram.WebApp.HapticFeedback.impactOccurred("medium");
-                timerInterval = setInterval(() => {
-                    timerSeconds++;
-                    updateTimerDisplay();
-                }, 1000);
-                const startBtn = document.getElementById("startButton");
-                const stopBtn = document.getElementById("stopButton");
-                startBtn.classList.remove("active");
-                startBtn.classList.add("inactive");
-                startBtn.disabled = true;
-                stopBtn.classList.remove("inactive");
-                stopBtn.classList.add("active");
-                stopBtn.disabled = false;
-                document.getElementById("timerDisplay").classList.add("active");
-            }
-        }
-
-        function stopTimer() {
-            if (timerInterval) {
-                Telegram.WebApp.HapticFeedback.impactOccurred("medium");
-                clearInterval(timerInterval);
-                timerInterval = null;
-                const totalMinutes = Math.floor(timerSeconds / 60);
-                timerSeconds = 0;
-                updateTimerDisplay();
-                const date = getCurrentDate();
-                const label = document.getElementById("labelSelect").value;
-                saveToServer(date, totalMinutes, label);
-                const startBtn = document.getElementById("startButton");
-                const stopBtn = document.getElementById("stopButton");
-                startBtn.classList.remove("inactive");
-                startBtn.classList.add("active");
-                startBtn.disabled = false;
-                stopBtn.classList.remove("active");
-                stopBtn.classList.add("inactive");
-                stopBtn.disabled = true;
-                document.getElementById("timerDisplay").classList.remove("active");
-            }
-        }
-
-        function updateTimerDisplay() {
-            const minutes = Math.floor(timerSeconds / 60).toString().padStart(2, "0");
-            const seconds = (timerSeconds % 60).toString().padStart(2, "0");
-            document.getElementById("timerDisplay").innerText = `${minutes}:${seconds}`;
-        }
-
+        // Сохранение данных на сервер
         function saveToServer(date, minutes, label) {
-            fetch("https://f9ae-109-123-246-190.ngrok-free.app/save-time", {
+            fetch(`${BASE_URL}/save-time`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ date, minutes, label })
             })
-            .then(response => response.json())
-            .then(() => fetchTimesFromServer())
-            .catch(err => console.error("Error:", err));
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(() => {
+                document.getElementById("timeInput").value = "";
+                fetchTimesFromServer();
+            })
+            .catch(err => {
+                console.error("Error saving to server:", err);
+                alert("Failed to save data. Check console for details.");
+            });
         }
 
+        // Получение данных с сервера
         function fetchTimesFromServer() {
-            fetch("https://f9ae-109-123-246-190.ngrok-free.app/get-times")
-            .then(response => response.json())
+            fetch(`${BASE_URL}/get-times`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 timesByDate = {};
                 data.forEach(record => {
@@ -155,60 +124,89 @@
                 });
                 updateTimeList();
             })
-            .catch(err => console.error("Error fetching from server:", err));
+            .catch(err => {
+                console.error("Error fetching from server:", err);
+                alert("Failed to load data. Check console for details.");
+            });
         }
 
+        // Обновление списка времени
         function updateTimeList() {
-            const container = document.getElementById("timeList");
-            container.innerHTML = "";
+            const timeList = document.getElementById("timeList");
+            timeList.innerHTML = "";
             for (const date in timesByDate) {
-                const times = timesByDate[date];
-                const totalMinutes = times.reduce((sum, t) => sum + t.minutes, 0);
-                const hours = Math.floor(totalMinutes / 60).toString().padStart(2, "0");
-                const minutes = (totalMinutes % 60).toString().padStart(2, "0");
-                const div = document.createElement("div");
-                div.className = "day-section";
-                div.innerHTML = `
-                    <h3>${date} (Сумма: ${hours}:${minutes})</h3>
-                    <p>${times.map(t => `${formatMinutes(t.minutes)} (${t.label})`).join(", ")}</p>
-                `;
-                container.appendChild(div);
+                const dateGroup = document.createElement("div");
+                dateGroup.className = "date-group";
+
+                const dateHeader = document.createElement("div");
+                dateHeader.className = "date-header";
+                dateHeader.textContent = `${date} (Total: ${timesByDate[date].reduce((sum, entry) => sum + entry.minutes, 0)} minutes)`;
+                dateGroup.appendChild(dateHeader);
+
+                timesByDate[date].forEach(entry => {
+                    const entryDiv = document.createElement("div");
+                    entryDiv.className = "time-entry";
+                    entryDiv.textContent = `${entry.minutes} minutes - ${entry.label}`;
+                    dateGroup.appendChild(entryDiv);
+                });
+
+                timeList.appendChild(dateGroup);
             }
         }
 
-        function formatMinutes(mins) {
-            const h = Math.floor(mins / 60).toString().padStart(2, "0");
-            const m = (mins % 60).toString().padStart(2, "0");
-            return `${h}:${m}`;
+        // Управление таймером
+        function startTimer() {
+            if (!timerInterval) {
+                timerInterval = setInterval(() => {
+                    timerSeconds++;
+                    updateTimerDisplay();
+                }, 1000);
+            }
         }
 
-        function editTime() {
-            const date = prompt("Введите дату для редактирования (YYYY-MM-DD):", getCurrentDate());
-            if (!timesByDate[date]) return alert("Нет данных за эту дату.");
-            const times = timesByDate[date];
-            const index = prompt(`Выберите запись для редактирования (0-${times.length - 1}):\n${times.map((t, i) => `${i}: ${formatMinutes(t.minutes)} (${t.label})`).join("\n")}`);
-            if (index !== null && times[index]) {
-                const newTime = prompt("Введите новое время (чч:мм):", formatMinutes(times[index].minutes));
-                const regex = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
-                if (regex.test(newTime)) {
-                    const [hours, minutes] = newTime.split(":").map(Number);
-                    times[index].minutes = hours * 60 + minutes;
-                    saveToServer(date, times[index].minutes, times[index].label); // Обновляем на сервере
-                } else {
-                    alert("Неверный формат времени.");
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+
+                const date = document.getElementById("dateInput").value;
+                const minutes = Math.floor(timerSeconds / 60);
+                const label = document.getElementById("labelInput").value;
+
+                if (minutes > 0) {
+                    saveToServer(date, minutes, label);
                 }
+
+                timerSeconds = 0;
+                updateTimerDisplay();
             }
         }
 
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timerSeconds / 60);
+            const seconds = timerSeconds % 60;
+            document.getElementById("timer").textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        }
+
+        // Сброс всех данных
         function resetAll() {
-            fetch("https://f9ae-109-123-246-190.ngrok-free.app/reset", { method: "POST" })
+            fetch(`${BASE_URL}/reset`, { method: "POST" })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(() => {
                 timesByDate = {};
                 updateTimeList();
                 timerSeconds = 0;
                 updateTimerDisplay();
             })
-            .catch(err => console.error("Error resetting data:", err));
+            .catch(err => {
+                console.error("Error resetting data:", err);
+                alert("Failed to reset data. Check console for details.");
+            });
         }
     </script>
 </body>
