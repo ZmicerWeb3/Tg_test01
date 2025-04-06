@@ -11,25 +11,15 @@
             padding: 15px;
             background-color: #f5f7fa;
             color: #333;
+            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
         h1 {
             text-align: center;
             color: #4a90e2;
             font-size: 24px;
             margin-bottom: 20px;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .menu-btn {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #4a90e2;
         }
         .container {
             max-width: 100%;
@@ -155,7 +145,7 @@
         }
         #timeList {
             margin-top: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 60px; /* Отступ для закладки */
         }
         .date-group {
             margin-bottom: 20px;
@@ -189,7 +179,37 @@
         }
         .time-entry .actions .edit-btn { color: #f5a623; }
         .time-entry .actions .delete-btn { color: #e74c3c; }
-        /* Стили для всплывающего меню */
+        /* Стили для закладки и меню */
+        .tab {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 40px;
+            background: #4a90e2;
+            border-top-left-radius: 50% 100%;
+            border-top-right-radius: 50% 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .menu-btn {
+            width: 50px;
+            height: 50px;
+            background: #fff;
+            border-radius: 50%;
+            border: 2px solid #4a90e2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            color: #4a90e2;
+            position: absolute;
+            top: -25px;
+        }
         .modal-overlay {
             display: none;
             position: fixed;
@@ -202,17 +222,20 @@
         }
         .modal {
             position: fixed;
-            top: -100%;
+            bottom: -100%;
             left: 0;
             width: 100%;
-            background: white;
+            height: 50vh; /* До середины экрана */
+            background: #4a90e2;
             padding: 20px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            transition: top 0.3s ease-in-out;
+            border-top-left-radius: 50px;
+            border-top-right-radius: 50px;
+            transition: bottom 0.3s ease-in-out;
             z-index: 1001;
+            overflow-y: auto;
         }
         .modal.open {
-            top: 0;
+            bottom: 0;
         }
         .modal-header {
             display: flex;
@@ -223,14 +246,14 @@
         .modal-header h2 {
             margin: 0;
             font-size: 18px;
-            color: #4a90e2;
+            color: white;
         }
         .modal-header .close-btn {
             background: none;
             border: none;
             font-size: 24px;
             cursor: pointer;
-            color: #666;
+            color: white;
         }
         .modal-content {
             display: flex;
@@ -239,7 +262,7 @@
         }
         .modal-content button, .modal-content a {
             padding: 10px;
-            background-color: #f0f0f0;
+            background-color: #fff;
             border: none;
             border-radius: 8px;
             font-size: 14px;
@@ -263,10 +286,7 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Трекер активности малыша</h1>
-            <button class="menu-btn" onclick="openModal()">☰</button>
-        </div>
+        <h1>Трекер активности малыша</h1>
         <div class="category-buttons">
             <button class="category-btn sleep active" data-label="Сон" onclick="selectCategory('Сон', this)">
                 <span>💤 Сон</span>
@@ -300,7 +320,10 @@
         <div id="timeList"></div>
     </div>
 
-    <!-- Всплывающее меню -->
+    <!-- Закладка и всплывающее меню -->
+    <div class="tab">
+        <button class="menu-btn" onclick="openModal()">☰</button>
+    </div>
     <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
         <div class="modal" id="modal">
             <div class="modal-header">
@@ -323,7 +346,7 @@
         let selectedLabel = "Сон";
         let isTimerRunning = false;
         let isDarkTheme = false;
-        const BASE_URL = "https://8a0c-109-123-246-190.ngrok-free.app"; // Твой ngrok URL
+        const BASE_URL = "https://8a0c-109-123-246-190.ngrok-free.app"; // Новый ngrok URL
 
         window.Telegram.WebApp.ready();
 
@@ -361,6 +384,7 @@
                 });
                 document.querySelector(".modal").style.backgroundColor = "#34495e";
                 document.querySelector(".modal").style.color = "#ecf0f1";
+                document.querySelector(".tab").style.backgroundColor = "#34495e";
             } else {
                 document.body.style.backgroundColor = "#f5f7fa";
                 document.querySelector(".container").style.backgroundColor = "white";
@@ -368,8 +392,9 @@
                 document.querySelectorAll(".time-entry").forEach(entry => {
                     entry.style.backgroundColor = "#f9f9f9";
                 });
-                document.querySelector(".modal").style.backgroundColor = "white";
-                document.querySelector(".modal").style.color = "#333";
+                document.querySelector(".modal").style.backgroundColor = "#4a90e2";
+                document.querySelector(".modal").style.color = "white";
+                document.querySelector(".tab").style.backgroundColor = "#4a90e2";
             }
             closeModal();
         }
