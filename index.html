@@ -406,7 +406,7 @@
     </div>
 
     <div class="container">
-        <h1 id="appTitle">Трекер активности малыша</h1>
+        <h1 id="appTitle">Трекер активности малыша 0.1.5</h1>
         <div class="category-buttons">
             <button class="category-btn sleep active" data-label="Сон" onclick="console.log('Category clicked: Сон'); selectCategory('Сон', this)">
                 <span>💤 Сон</span>
@@ -713,6 +713,12 @@
             event.preventDefault();
             if (isTimerRunning) return;
 
+            if (!tg || !tg.initData) {
+                console.error('Telegram WebApp API is not initialized');
+                showToast("Ошибка: приложение не инициализировано. Пожалуйста, откройте через Telegram.");
+                return;
+            }
+
             if (confirm("Вы уверены, что хотите сбросить все данные? Это приведёт к удалению всех записей таймера.")) {
                 fetch(`${BASE_URL}/reset`, {
                     method: "POST",
@@ -753,6 +759,12 @@
 
         // Сохранение на сервер
         function saveToServer(date, minutes, label) {
+            if (!tg || !tg.initData) {
+                console.error('Telegram WebApp API is not initialized');
+                showToast("Ошибка: приложение не инициализировано. Пожалуйста, откройте через Telegram.");
+                return;
+            }
+
             showLoading(true);
             fetch(`${BASE_URL}/save-time`, {
                 method: "POST",
@@ -782,6 +794,12 @@
 
         // Получение данных с сервера
         function fetchTimesFromServer() {
+            if (!tg || !tg.initData) {
+                console.error('Telegram WebApp API is not initialized');
+                showToast("Ошибка: приложение не инициализировано. Пожалуйста, откройте через Telegram.");
+                return;
+            }
+
             showLoading(true);
             fetch(`${BASE_URL}/get-times`, {
                 method: "GET",
@@ -889,6 +907,12 @@
             updateSummary();
 
             if (fetchAfter) {
+                if (!tg || !tg.initData) {
+                    console.error('Telegram WebApp API is not initialized');
+                    showToast("Ошибка: приложение не инициализировано. Пожалуйста, откройте через Telegram.");
+                    return;
+                }
+
                 fetch(`${BASE_URL}/reset`, {
                     method: "POST",
                     headers: {
