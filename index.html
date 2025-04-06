@@ -3,49 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Time Sum App</title>
+    <title>Baby Tracker</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f0f0f0; }
-        h1 { text-align: center; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .input-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #555; }
-        input, select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; }
-        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
-        button:hover { background-color: #0056b3; }
-        #timer { font-size: 24px; margin: 20px 0; text-align: center; color: #333; }
-        #timeList { margin-top: 20px; }
-        .time-entry { padding: 10px; background-color: #f9f9f9; margin-bottom: 10px; border-radius: 4px; }
-        .date-group { margin-bottom: 20px; }
-        .date-header { font-weight: bold; color: #007bff; margin-bottom: 10px; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #4a90e2;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .category-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .category-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: background-color 0.3s;
+        }
+        .category-btn.sleep { background-color: #e6f0fa; color: #4a90e2; }
+        .category-btn.feed { background-color: #fef5e7; color: #f5a623; }
+        .category-btn.play { background-color: #e7f9e7; color: #2ecc71; }
+        .category-btn.active { border: 2px solid #4a90e2; }
+        .category-btn:hover { opacity: 0.9; }
+        .quick-minutes {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .quick-btn {
+            padding: 8px 12px;
+            background-color: #f0f0f0;
+            border: none;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .quick-btn:hover { background-color: #ddd; }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        button {
+            padding: 10px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            flex: 1;
+            transition: background-color 0.3s;
+        }
+        button:hover { background-color: #357abd; }
+        #timer {
+            font-size: 28px;
+            text-align: center;
+            color: #4a90e2;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .summary {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .summary-item span {
+            font-size: 14px;
+            color: #666;
+        }
+        #timeList {
+            margin-top: 20px;
+        }
+        .date-group {
+            margin-bottom: 20px;
+        }
+        .date-header {
+            font-weight: bold;
+            color: #4a90e2;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .time-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f9f9f9;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .time-entry .actions {
+            display: flex;
+            gap: 5px;
+        }
+        .time-entry .actions button {
+            padding: 5px 10px;
+            font-size: 12px;
+            background-color: #ddd;
+            color: #333;
+        }
+        .time-entry .actions .edit-btn { background-color: #f5a623; color: white; }
+        .time-entry .actions .delete-btn { background-color: #e74c3c; color: white; }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h1>Time Sum App</h1>
+        <h1>Baby Tracker</h1>
         <div class="input-group">
             <label for="dateInput">Date:</label>
             <input type="date" id="dateInput">
         </div>
+        <div class="category-buttons">
+            <button class="category-btn sleep active" data-label="Сон" onclick="selectCategory('Сон', this)">
+                <span>💤 Сон</span>
+            </button>
+            <button class="category-btn feed" data-label="Кормление" onclick="selectCategory('Кормление', this)">
+                <span>🍼 Кормление</span>
+            </button>
+            <button class="category-btn play" data-label="Игра" onclick="selectCategory('Игра', this)">
+                <span>🎲 Игра</span>
+            </button>
+        </div>
         <div class="input-group">
             <label for="timeInput">Minutes:</label>
-            <input type="number" id="timeInput" min="0">
+            <input type="number" id="timeInput" min="0" placeholder="Enter minutes">
         </div>
-        <div class="input-group">
-            <label for="labelInput">Label:</label>
-            <select id="labelInput">
-                <option value="Сон">Сон</option>
-                <option value="Кормление">Кормление</option>
-                <option value="Игра">Игра</option>
-                <option value="Прогулка">Прогулка</option>
-                <option value="Другое">Другое</option>
-            </select>
+        <div class="quick-minutes">
+            <button class="quick-btn" onclick="setMinutes(15)">15 min</button>
+            <button class="quick-btn" onclick="setMinutes(30)">30 min</button>
+            <button class="quick-btn" onclick="setMinutes(45)">45 min</button>
+            <button class="quick-btn" onclick="setMinutes(60)">60 min</button>
         </div>
-        <button onclick="addTime()">Add Time</button>
-        <button onclick="startTimer()">Start Timer</button>
-        <button onclick="stopTimer()">Stop Timer</button>
-        <button onclick="resetAll()">Reset All</button>
+        <div class="action-buttons">
+            <button onclick="addTime()">Add Time</button>
+            <button onclick="startTimer()">Start Timer</button>
+            <button onclick="stopTimer()">Stop Timer</button>
+            <button onclick="resetAll()">Reset All</button>
+        </div>
         <div id="timer">00:00</div>
+        <div class="summary" id="summary"></div>
         <div id="timeList"></div>
     </div>
 
@@ -53,7 +201,8 @@
         let timesByDate = {};
         let timerSeconds = 0;
         let timerInterval = null;
-        const BASE_URL = "https://eba4-109-123-246-190.ngrok-free.app"; // Новый URL от ngrok
+        let selectedLabel = "Сон";
+        const BASE_URL = "http://your-server-ip:3000"; // Замени на адрес твоего сервера
 
         window.Telegram.WebApp.ready();
 
@@ -67,40 +216,41 @@
             document.getElementById("dateInput").value = today;
         }
 
+        function selectCategory(label, button) {
+            selectedLabel = label;
+            document.querySelectorAll(".category-btn").forEach(btn => btn.classList.remove("active"));
+            button.classList.add("active");
+        }
+
+        function setMinutes(minutes) {
+            document.getElementById("timeInput").value = minutes;
+        }
+
         function addTime() {
             const date = document.getElementById("dateInput").value;
             const minutes = parseInt(document.getElementById("timeInput").value);
-            const label = document.getElementById("labelInput").value;
 
             if (!date || isNaN(minutes) || minutes <= 0) {
                 alert("Please enter a valid date and minutes!");
                 return;
             }
 
-            saveToServer(date, minutes, label);
+            saveToServer(date, minutes, selectedLabel);
         }
 
         function saveToServer(date, minutes, label) {
-            console.log("Saving to server:", { date, minutes, label });
             fetch(`${BASE_URL}/save-time`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "ngrok-skip-browser-warning": "true" // Обход предупреждения ngrok
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ date, minutes, label })
             })
             .then(response => {
-                console.log("Save response status:", response.status);
                 if (!response.ok) {
-                    return response.text().then(text => {
-                        throw new Error(`HTTP error! Status: ${response.status}, Response: ${text}`);
-                    });
+                    throw new Error(`HTTP error! Status: ${response.status}`);
                 }
                 return response.json();
             })
-            .then(data => {
-                console.log("Save response data:", data);
+            .then(() => {
                 document.getElementById("timeInput").value = "";
                 fetchTimesFromServer();
             })
@@ -111,31 +261,24 @@
         }
 
         function fetchTimesFromServer() {
-            console.log("Fetching times from server...");
             fetch(`${BASE_URL}/get-times`, {
                 method: "GET",
-                headers: {
-                    "Accept": "application/json",
-                    "ngrok-skip-browser-warning": "true" // Обход предупреждения ngrok
-                }
+                headers: { "Accept": "application/json" }
             })
             .then(response => {
-                console.log("Fetch response status:", response.status);
                 if (!response.ok) {
-                    return response.text().then(text => {
-                        throw new Error(`HTTP error! Status: ${response.status}, Response: ${text}`);
-                    });
+                    throw new Error(`HTTP error! Status: ${response.status}`);
                 }
                 return response.json();
             })
             .then(data => {
-                console.log("Fetched data:", data);
                 timesByDate = {};
                 data.forEach(record => {
                     if (!timesByDate[record.date]) timesByDate[record.date] = [];
                     timesByDate[record.date].push({ minutes: record.minutes, label: record.label });
                 });
                 updateTimeList();
+                updateSummary();
             })
             .catch(err => {
                 console.error("Error fetching from server:", err);
@@ -155,14 +298,73 @@
                 dateHeader.textContent = `${date} (Total: ${timesByDate[date].reduce((sum, entry) => sum + entry.minutes, 0)} minutes)`;
                 dateGroup.appendChild(dateHeader);
 
-                timesByDate[date].forEach(entry => {
+                timesByDate[date].forEach((entry, index) => {
                     const entryDiv = document.createElement("div");
                     entryDiv.className = "time-entry";
-                    entryDiv.textContent = `${entry.minutes} minutes - ${entry.label}`;
+                    entryDiv.innerHTML = `
+                        ${entry.minutes} minutes - ${entry.label}
+                        <div class="actions">
+                            <button class="edit-btn" onclick="editEntry('${date}', ${index})">Edit</button>
+                            <button class="delete-btn" onclick="deleteEntry('${date}', ${index})">Delete</button>
+                        </div>
+                    `;
                     dateGroup.appendChild(entryDiv);
                 });
 
                 timeList.appendChild(dateGroup);
+            }
+        }
+
+        function updateSummary() {
+            const summaryDiv = document.getElementById("summary");
+            const today = document.getElementById("dateInput").value;
+            const todayEntries = timesByDate[today] || [];
+
+            const sleepTotal = todayEntries
+                .filter(entry => entry.label === "Сон")
+                .reduce((sum, entry) => sum + entry.minutes, 0);
+            const feedTotal = todayEntries
+                .filter(entry => entry.label === "Кормление")
+                .reduce((sum, entry) => sum + entry.minutes, 0);
+            const playTotal = todayEntries
+                .filter(entry => entry.label === "Игра")
+                .reduce((sum, entry) => sum + entry.minutes, 0);
+
+            summaryDiv.innerHTML = `
+                <div class="summary-item">
+                    <span>💤 Sleep: ${sleepTotal} minutes</span>
+                </div>
+                <div class="summary-item">
+                    <span>🍼 Feeding: ${feedTotal} minutes</span>
+                </div>
+                <div class="summary-item">
+                    <span>🎲 Play: ${playTotal} minutes</span>
+                </div>
+            `;
+        }
+
+        function editEntry(date, index) {
+            const entry = timesByDate[date][index];
+            document.getElementById("timeInput").value = entry.minutes;
+            selectCategory(entry.label, document.querySelector(`.category-btn[data-label="${entry.label}"]`));
+            document.getElementById("dateInput").value = date;
+
+            deleteEntry(date, index, false);
+        }
+
+        function deleteEntry(date, index, fetchAfter = true) {
+            timesByDate[date].splice(index, 1);
+            if (timesByDate[date].length === 0) delete timesByDate[date];
+            updateTimeList();
+            updateSummary();
+
+            if (fetchAfter) {
+                fetch(`${BASE_URL}/reset`, { method: "POST" })
+                    .then(() => {
+                        Object.keys(timesByDate).forEach(d => {
+                            timesByDate[d].forEach(entry => saveToServer(d, entry.minutes, entry.label));
+                        });
+                    });
             }
         }
 
@@ -172,6 +374,7 @@
                     timerSeconds++;
                     updateTimerDisplay();
                 }, 1000);
+                document.getElementById("timer").style.color = "#2ecc71";
             }
         }
 
@@ -182,14 +385,18 @@
 
                 const date = document.getElementById("dateInput").value;
                 const minutes = Math.floor(timerSeconds / 60);
-                const label = document.getElementById("labelInput").value;
 
                 if (minutes > 0) {
-                    saveToServer(date, minutes, label);
+                    saveToServer(date, minutes, selectedLabel);
                 }
 
                 timerSeconds = 0;
                 updateTimerDisplay();
+                document.getElementById("timer").style.color = "#4a90e2";
+
+                // Звуковое уведомление
+                const audio = new Audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3");
+                audio.play().catch(err => console.log("Audio play failed:", err));
             }
         }
 
@@ -200,33 +407,24 @@
         }
 
         function resetAll() {
-            console.log("Resetting all data...");
-            fetch(`${BASE_URL}/reset`, {
-                method: "POST",
-                headers: {
-                    "ngrok-skip-browser-warning": "true" // Обход предупреждения ngrok
-                }
-            })
-            .then(response => {
-                console.log("Reset response status:", response.status);
-                if (!response.ok) {
-                    return response.text().then(text => {
-                        throw new Error(`HTTP error! Status: ${response.status}, Response: ${text}`);
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log("Reset response data:", data);
-                timesByDate = {};
-                updateTimeList();
-                timerSeconds = 0;
-                updateTimerDisplay();
-            })
-            .catch(err => {
-                console.error("Error resetting data:", err);
-                alert("Failed to reset data. Check console for details.");
-            });
+            fetch(`${BASE_URL}/reset`, { method: "POST" })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(() => {
+                    timesByDate = {};
+                    updateTimeList();
+                    updateSummary();
+                    timerSeconds = 0;
+                    updateTimerDisplay();
+                })
+                .catch(err => {
+                    console.error("Error resetting data:", err);
+                    alert("Failed to reset data. Check console for details.");
+                });
         }
     </script>
 </body>
