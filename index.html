@@ -4,66 +4,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baby Tracker</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
             /* Основные цвета */
-            --primary-color: #4a90e2;
-            --primary-hover: #357abd;
-            --success-color: #2ecc71;
-            --danger-color: #e74c3c;
-            --warning-color: #f5a623;
-            
-            /* Цвета текста */
-            --text-primary: #333;
-            --text-secondary: #666;
-            --text-light: #ecf0f1;
-            
-            /* Цвета фона */
-            --bg-primary: #f5f7fa;
-            --bg-container: white;
-            --bg-entry: #f9f9f9;
-            
-            /* Цвета категорий */
-            --category-sleep-bg: #e6f0fa;
-            --category-feed-bg: #fef5e7;
-            --category-play-bg: #e7f9e7;
-            
-            /* Цвета кнопок */
-            --btn-quick-bg: #d9d9d9;
-            --btn-quick-hover: #c0c0c0;
-            --btn-modal-hover: #e0e0e0;
+            --primary-color: #4a90e2; /* Основной синий цвет */
+            --secondary-color: #357abd; /* Цвет при наведении на кнопки */
+            --success-color: #2ecc71; /* Зелёный для старта таймера */
+            --danger-color: #e74c3c; /* Красный для остановки таймера */
+            --warning-color: #f5a623; /* Жёлтый для кормления */
+            --background-color: #f5f7fa; /* Фон страницы */
+            --container-bg: white; /* Фон контейнера */
+            --entry-bg: #f9f9f9; /* Фон записей и сводки */
+            --text-color: #333; /* Цвет текста */
+            --text-secondary: #666; /* Вторичный цвет текста (для сводки) */
+            --modal-overlay-bg: rgba(0, 0, 0, 0.5); /* Затемнение фона модального окна */
+            --button-bg-sleep: #e6f0fa; /* Фон кнопки "Сон" */
+            --button-bg-feed: #fef5e7; /* Фон кнопки "Кормление" */
+            --button-bg-play: #e7f9e7; /* Фон кнопки "Игра" */
+            --quick-btn-bg: #d9d9d9; /* Фон быстрых кнопок */
+            --quick-btn-hover: #c0c0c0; /* Фон быстрых кнопок при наведении */
+            --border-color: #ddd; /* Цвет границы */
         }
 
         body {
             font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 15px;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
+            background-color: var(--background-color);
+            color: var(--text-color);
             position: relative;
             min-height: 100vh;
             overflow-x: hidden;
         }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
         h1 {
             text-align: center;
             color: var(--primary-color);
             font-size: 24px;
-            margin-bottom: 20px;
+            margin: 0;
         }
+
+        .app-version {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
         .container {
             max-width: 100%;
             margin: 0 auto;
-            background: var(--bg-container);
+            background: var(--container-bg);
             padding: 15px;
             border-radius: 12px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         }
+
         .category-buttons {
             display: flex;
             gap: 10px;
             margin-bottom: 15px;
         }
+
         .category-btn {
             flex: 1;
             padding: 10px;
@@ -77,26 +84,31 @@
             gap: 5px;
             transition: background-color 0.3s;
         }
-        .category-btn.sleep { background-color: var(--category-sleep-bg); color: var(--primary-color); }
-        .category-btn.feed { background-color: var(--category-feed-bg); color: var(--warning-color); }
-        .category-btn.play { background-color: var(--category-play-bg); color: var(--success-color); }
+
+        .category-btn.sleep { background-color: var(--button-bg-sleep); color: var(--primary-color); }
+        .category-btn.feed { background-color: var(--button-bg-feed); color: var(--warning-color); }
+        .category-btn.play { background-color: var(--button-bg-play); color: var(--success-color); }
         .category-btn.active { border: 2px solid var(--primary-color); }
         .category-btn:hover { opacity: 0.9; }
+
         .quick-minutes {
             flex-wrap: wrap;
             gap: 8px;
             margin-bottom: 15px;
         }
+
         .quick-btn {
             padding: 8px 12px;
-            background-color: var(--btn-quick-bg);
+            background-color: var(--quick-btn-bg);
             border: none;
             border-radius: 20px;
             font-size: 12px;
             cursor: pointer;
             transition: background-color 0.3s;
         }
-        .quick-btn:hover { background-color: var(--btn-quick-hover); }
+
+        .quick-btn:hover { background-color: var(--quick-btn-hover); }
+
         .toggle-link {
             display: block;
             text-align: center;
@@ -105,21 +117,25 @@
             margin-bottom: 15px;
             cursor: pointer;
         }
+
         .manual-input {
             display: none;
             margin-bottom: 15px;
         }
+
         .manual-input.show {
             display: block;
         }
+
         .manual-input input {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             font-size: 14px;
             box-sizing: border-box;
         }
+
         .add-time-btn {
             display: block;
             width: 80%;
@@ -133,12 +149,15 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
-        .add-time-btn:hover { background-color: var(--primary-hover); }
+
+        .add-time-btn:hover { background-color: var(--secondary-color); }
+
         .timer-buttons {
             display: flex;
             justify-content: center;
             margin-bottom: 15px;
         }
+
         .timer-btn {
             width: 120px;
             height: 120px;
@@ -148,8 +167,10 @@
             border: none;
             transition: background-color 0.3s;
         }
+
         .timer-btn.start { background-color: var(--success-color); color: white; }
         .timer-btn.stop { background-color: var(--danger-color); color: white; }
+
         #timer {
             font-size: 28px;
             text-align: center;
@@ -157,49 +178,58 @@
             margin: 15px 0;
             font-weight: bold;
         }
+
         .summary {
-            background-color: var(--bg-entry);
+            background-color: var(--entry-bg);
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 15px;
         }
+
         .summary-item {
             display: flex;
             align-items: center;
             gap: 10px;
             margin-bottom: 10px;
         }
+
         .summary-item span {
             font-size: 14px;
             color: var(--text-secondary);
         }
+
         #timeList {
             margin-top: 20px;
             margin-bottom: 60px; /* Отступ для закладки */
         }
+
         .date-group {
             margin-bottom: 20px;
         }
+
         .date-header {
             font-weight: bold;
             color: var(--primary-color);
             font-size: 16px;
             margin-bottom: 10px;
         }
+
         .time-entry {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 10px;
-            background-color: var(--bg-entry);
+            background-color: var(--entry-bg);
             margin-bottom: 8px;
             border-radius: 8px;
             font-size: 14px;
         }
+
         .time-entry .actions {
             display: flex;
             gap: 5px;
         }
+
         .time-entry .actions button {
             padding: 5px;
             font-size: 16px;
@@ -207,8 +237,10 @@
             border: none;
             cursor: pointer;
         }
+
         .time-entry .actions .edit-btn { color: var(--warning-color); }
         .time-entry .actions .delete-btn { color: var(--danger-color); }
+
         /* Стили для закладки и меню */
         .tab {
             position: fixed;
@@ -225,10 +257,11 @@
             align-items: center;
             z-index: 1000;
         }
+
         .menu-btn {
             width: 50px;
             height: 50px;
-            background: var(--bg-container);
+            background: var(--container-bg);
             border-radius: 50%;
             border: 2px solid var(--primary-color);
             display: flex;
@@ -240,6 +273,7 @@
             position: absolute;
             top: -25px;
         }
+
         .modal-overlay {
             display: none;
             position: fixed;
@@ -247,9 +281,10 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: var(--modal-overlay-bg);
             z-index: 1000;
         }
+
         .modal {
             position: fixed;
             bottom: -100%;
@@ -264,20 +299,24 @@
             z-index: 1001;
             overflow-y: auto;
         }
+
         .modal.open {
             bottom: 0;
         }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
+
         .modal-header h2 {
             margin: 0;
             font-size: 18px;
             color: white;
         }
+
         .modal-header .close-btn {
             background: none;
             border: none;
@@ -285,30 +324,35 @@
             cursor: pointer;
             color: white;
         }
+
         .modal-content {
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
+
         .modal-content button, .modal-content a {
             padding: 10px;
-            background-color: var(--bg-container);
+            background-color: var(--container-bg);
             border: none;
             border-radius: 8px;
             font-size: 14px;
             text-align: left;
             cursor: pointer;
             text-decoration: none;
-            color: var(--text-primary);
+            color: var(--text-color);
         }
+
         .modal-content button:hover, .modal-content a:hover {
-            background-color: var(--btn-modal-hover);
+            background-color: var(--entry-bg);
         }
+
         .modal-content .reset-link {
             color: var(--danger-color);
         }
+
         .modal-content .reset-link.inactive {
-            color: #999;
+            color: var(--text-secondary);
             cursor: not-allowed;
         }
     </style>
@@ -316,7 +360,10 @@
 </head>
 <body>
     <div class="container">
-        <h1>Трекер активности малыша</h1>
+        <div class="header">
+            <h1>Трекер активности малыша</h1>
+            <span class="app-version">v0.1.0</span>
+        </div>
         <div class="category-buttons">
             <button class="category-btn sleep active" data-label="Сон" onclick="selectCategory('Сон', this)">
                 <span>💤 Сон</span>
@@ -361,9 +408,10 @@
                 <button class="close-btn" onclick="closeModal()">✖</button>
             </div>
             <div class="modal-content">
+                <button onclick="toggleFullscreen()">🖥️ Полноэкранный режим</button>
                 <button onclick="alert('Статистика за неделю скоро появится!')">📊 Статистика за неделю</button>
                 <button onclick="toggleTheme()">🌙 Переключить тему</button>
-                <button onclick="alert('Трекер активности малыша\nВерсия 1.0\nСоздано для родителей с ❤️')">ℹ️ О приложении</button>
+                <button onclick="alert('Трекер активности малыша\nВерсия 0.1.0\nСоздано для родителей с ❤️')">ℹ️ О приложении</button>
                 <a href="#" id="resetLink" class="reset-link" onclick="confirmReset(event)">🗑️ Сбросить всё</a>
             </div>
         </div>
@@ -376,68 +424,25 @@
         let selectedLabel = "Сон";
         let isTimerRunning = false;
         let isDarkTheme = false;
+        let isFullscreen = false;
         const BASE_URL = "https://8a0c-109-123-246-190.ngrok-free.app";
+        const APP_VERSION = "0.1.0";
 
-        // Инициализация Telegram WebApp
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-
-        // Получение информации о пользователе
-        const user = tg.initDataUnsafe.user;
-        if (user) {
-            console.log('User:', user);
-            // Можно использовать user.first_name, user.last_name, user.username
-        }
-
-        // Настройка кнопки "назад"
-        tg.BackButton.show();
-        tg.BackButton.onClick(() => {
-            if (document.getElementById("modalOverlay").style.display === "block") {
-                closeModal();
-            } else {
-                tg.close();
-            }
-        });
-
-        // Настройка MainButton
-        const mainButton = tg.MainButton;
-        mainButton.setText("Добавить время");
-        mainButton.onClick(() => {
-            addTime();
-        });
-
-        // Автоматическое определение темы
-        if (tg.colorScheme === 'dark') {
-            isDarkTheme = true;
-            toggleTheme();
-        }
-
-        // Обработка изменения темы
-        tg.onEvent('themeChanged', () => {
-            isDarkTheme = tg.colorScheme === 'dark';
-            toggleTheme();
-        });
+        window.Telegram.WebApp.ready();
 
         document.addEventListener("DOMContentLoaded", () => {
             fetchTimesFromServer();
-            // Показываем MainButton только когда есть введенное время
-            document.getElementById("timeInput").addEventListener("input", (e) => {
-                if (e.target.value && !isNaN(e.target.value) && parseInt(e.target.value) > 0) {
-                    mainButton.show();
-                } else {
-                    mainButton.hide();
-                }
-            });
         });
 
-        // Функция для тактильной обратной связи
-        function vibrate(duration) {
-            if (tg.isVersionAtLeast('6.1')) {
-                tg.HapticFeedback.impactOccurred('light');
-            } else if (navigator.vibrate) {
-                navigator.vibrate(duration);
+        function toggleFullscreen() {
+            if (!isFullscreen) {
+                window.Telegram.WebApp.requestFullscreen();
+                isFullscreen = true;
+            } else {
+                window.Telegram.WebApp.exitFullscreen();
+                isFullscreen = false;
             }
+            closeModal();
         }
 
         function openModal() {
@@ -448,7 +453,6 @@
                 modal.classList.add("open");
             }, 10);
             updateResetLink();
-            vibrate(50);
         }
 
         function closeModal() {
@@ -458,7 +462,6 @@
             setTimeout(() => {
                 modalOverlay.style.display = "none";
             }, 300);
-            vibrate(50);
         }
 
         function toggleTheme() {
@@ -485,27 +488,22 @@
                 document.querySelector(".tab").style.backgroundColor = "#4a90e2";
             }
             closeModal();
-            vibrate(50);
         }
 
         function selectCategory(label, button) {
             selectedLabel = label;
             document.querySelectorAll(".category-btn").forEach(btn => btn.classList.remove("active"));
             button.classList.add("active");
-            vibrate(50);
         }
 
         function setMinutes(minutes) {
             document.getElementById("timeInput").value = minutes;
             document.getElementById("manualInput").classList.add("show");
-            mainButton.show();
-            vibrate(50);
         }
 
         function toggleManualInput() {
             const manualInput = document.getElementById("manualInput");
             manualInput.classList.toggle("show");
-            vibrate(50);
         }
 
         function addTime() {
@@ -513,13 +511,15 @@
             const minutes = parseInt(document.getElementById("timeInput").value);
 
             if (isNaN(minutes) || minutes <= 0) {
-                tg.showAlert("Пожалуйста, введите корректное количество минут!");
+                alert("Пожалуйста, введите корректное количество минут!");
                 return;
             }
 
-            vibrate(300);
+            if (navigator.vibrate) {
+                navigator.vibrate(300);
+            }
+
             saveToServer(date, minutes, selectedLabel);
-            mainButton.hide();
         }
 
         function saveToServer(date, minutes, label) {
@@ -692,7 +692,10 @@
                 document.getElementById("timerBtn").textContent = "Старт";
             }
 
-            vibrate(500);
+            if (navigator.vibrate) {
+                navigator.vibrate(500);
+            }
+
             updateResetLink();
         }
 
