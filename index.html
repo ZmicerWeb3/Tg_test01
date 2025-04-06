@@ -406,7 +406,7 @@
     </div>
 
     <div class="container">
-        <h1 id="appTitle">Трекер активности малыша 0.1.3</h1>
+        <h1 id="appTitle">Трекер активности малыша</h1>
         <div class="category-buttons">
             <button class="category-btn sleep active" data-label="Сон" onclick="console.log('Category clicked: Сон'); selectCategory('Сон', this)">
                 <span>💤 Сон</span>
@@ -462,22 +462,6 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        // Telegram WebApp API
-        const tg = window.Telegram.WebApp;
-        const BASE_URL = "https://8a0c-109-123-246-190.ngrok-free.app";
-
-        // Инициализация приложения
-        console.log('Initializing Telegram WebApp...');
-        tg.ready();
-        tg.expand();
-
-        // Получение данных пользователя
-        const user = tg.initDataUnsafe.user;
-        if (user) {
-            console.log('User data:', user);
-            document.getElementById('appTitle').textContent = `Трекер активности малыша - ${user.first_name}`;
-        }
-
         // Глобальные переменные
         let timesByDate = {};
         let timerSeconds = 0;
@@ -504,6 +488,22 @@
             toggleManual: document.getElementById('toggleManual'),
             addTimeBtn: document.getElementById('addTimeBtn')
         };
+
+        // Telegram WebApp API
+        const tg = window.Telegram.WebApp;
+        const BASE_URL = "https://8a0c-109-123-246-190.ngrok-free.app";
+
+        // Инициализация приложения
+        console.log('Initializing Telegram WebApp...');
+        tg.ready();
+        tg.expand();
+
+        // Получение данных пользователя
+        const user = tg.initDataUnsafe.user;
+        if (user) {
+            console.log('User data:', user);
+            document.getElementById('appTitle').textContent = `Трекер активности малыша - ${user.first_name}`;
+        }
 
         // Инициализация при загрузке
         console.log('Setting up event listeners...');
@@ -610,7 +610,7 @@
         function selectCategory(label, button) {
             console.log('selectCategory called with:', label);
             selectedLabel = label;
-            elements.categoryButtons.forEach(btn => btn.classList.remove("active"));
+            document.querySelectorAll(".category-btn").forEach(btn => btn.classList.remove("active"));
             button.classList.add("active");
         }
 
@@ -644,162 +644,6 @@
             }
 
             saveToServer(date, minutes, selectedLabel);
-        }
-
-        // Сохранение на сервер
-        async function saveToServer(date, minutes, label) {
-            showLoading(true);
-            try {
-                const response = await fetch(`${BASE_URL}/save-time`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-Telegram-WebApp-Init-Data": tg.initData,
-                        "ngrok-skip-browser-warning": "true"
-                    },
-                    body: JSON.stringify({ date, minutes, label })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-
-                elements.timeInput.value = "";
-                await fetchTimesFromServer();
-                showToast("Время успешно сохранено!");
-            } catch (err) {
-                console.error("Error saving to server:", err);
-                showToast("Не удалось сохранить данные. Попробуйте позже.");
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        // Получение данных с сервера
-        async function fetchTimesFromServer() {
-            showLoading(true);
-            try {
-                const response = await fetch(`${BASE_URL}/get-times`, {
-                    method: "GET",
-                    headers: {
-                        "Accept": "application/json",
-                        "X-Telegram-WebApp-Init-Data": tg.initData,
-                        "ngrok-skip-browser-warning": "true"
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                timesByDate = {};
-                data.forEach(record => {
-                    if (!timesByDate[record.date]) timesByDate[record.date] = [];
-                    timesByDate[record.date].push({ minutes: record.minutes, label: record.label });
-                });
-                updateTimeList();
-                updateSummary();
-            } catch (err) {
-                console.error("Error fetching from server:", err);
-                showToast("Не удалось загрузить данные. Попробуйте позже.");
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        // Обновление списка времени
-        function updateTimeList() {
-            elements.timeList.innerHTML = "";
-            for (const date in timesByDate) {
-                const dateGroup = document.createElement("div");
-                dateGroup.className = "date-group";
-
-                const dateHeader = document.createElement("div");
-                dateHeader.className = "date-header";
-                dateHeader.textContent = `${date} (Всего: ${timesByDate[date].reduce((sum, entry) => sum + entry.minutes, 0)} минут)`;
-                dateGroup.appendChild(dateHeader);
-
-                timesByDate[date].forEach((entry, index) => {
-                    const entryDiv = document.createElement("div");
-                    entryDiv.className = "time-entry";
-                    entryDiv.innerHTML = `
-                        ${entry.minutes} минут - ${entry.label}
-                        <div class="actions">
-                            <button class="edit-btn" onclick="editEntry('${date}', ${index})">✏️</button>
-                            <button class="delete-btn" onclick="deleteEntry('${date}', ${index})">🗑️</button>
-                        </div>
-                    `;
-                    dateGroup.appendChild(entryDiv);
-                });
-
-                elements.timeList.appendChild(dateGroup);
-            }
-        }
-
-        // Обновление сводки
-        function updateSummary() {
-            const today = new Date().toISOString().split("T")[0];
-            const todayEntries = timesByDate[today] || [];
-
-            const sleepTotal = todayEntries
-                .filter(entry => entry.label === "Сон")
-                .reduce((sum, entry) => sum + entry.minutes, 0);
-            const feedTotal = todayEntries
-                .filter(entry => entry.label === "Кормление")
-                .reduce((sum, entry) => sum + entry.minutes, 0);
-            const playTotal = todayEntries
-                .filter(entry => entry.label === "Игра")
-                .reduce((sum, entry) => sum + entry.minutes, 0);
-
-            elements.summary.innerHTML = `
-                <div class="summary-item">
-                    <span>💤 Сон: ${sleepTotal} минут</span>
-                </div>
-                <div class="summary-item">
-                    <span>🍼 Кормление: ${feedTotal} минут</span>
-                </div>
-                <div class="summary-item">
-                    <span>🪇 Игра: ${playTotal} минут</span>
-                </div>
-            `;
-        }
-
-        // Редактирование записи
-        function editEntry(date, index) {
-            const entry = timesByDate[date][index];
-            elements.timeInput.value = entry.minutes;
-            selectCategory(entry.label, document.querySelector(`.category-btn[data-label="${entry.label}"]`));
-            elements.manualInput.classList.add("show");
-            deleteEntry(date, index, false);
-        }
-
-        // Удаление записи
-        async function deleteEntry(date, index, fetchAfter = true) {
-            timesByDate[date].splice(index, 1);
-            if (timesByDate[date].length === 0) delete timesByDate[date];
-            updateTimeList();
-            updateSummary();
-
-            if (fetchAfter) {
-                try {
-                    await fetch(`${BASE_URL}/reset`, {
-                        method: "POST",
-                        headers: {
-                            "X-Telegram-WebApp-Init-Data": tg.initData,
-                            "ngrok-skip-browser-warning": "true"
-                        }
-                    });
-                    for (const d in timesByDate) {
-                        for (const entry of timesByDate[d]) {
-                            await saveToServer(d, entry.minutes, entry.label);
-                        }
-                    }
-                } catch (err) {
-                    console.error("Error resetting data:", err);
-                    showToast("Не удалось обновить данные. Попробуйте позже.");
-                }
-            }
         }
 
         // Переключение таймера
@@ -896,6 +740,163 @@
             console.log('showAbout called');
             showToast("Трекер активности малыша\nВерсия 1.0\nСоздано для родителей с ❤️");
             closeModal();
+        }
+
+        // Сохранение на сервер
+        function saveToServer(date, minutes, label) {
+            showLoading(true);
+            fetch(`${BASE_URL}/save-time`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Telegram-WebApp-Init-Data": tg.initData,
+                    "ngrok-skip-browser-warning": "true"
+                },
+                body: JSON.stringify({ date, minutes, label })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                elements.timeInput.value = "";
+                fetchTimesFromServer();
+                showToast("Время успешно сохранено!");
+            })
+            .catch(err => {
+                console.error("Error saving to server:", err);
+                showToast("Не удалось сохранить данные. Попробуйте позже.");
+            })
+            .finally(() => {
+                showLoading(false);
+            });
+        }
+
+        // Получение данных с сервера
+        function fetchTimesFromServer() {
+            showLoading(true);
+            fetch(`${BASE_URL}/get-times`, {
+                method: "GET",
+                headers: {
+                    "Accept": "application/json",
+                    "X-Telegram-WebApp-Init-Data": tg.initData,
+                    "ngrok-skip-browser-warning": "true"
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                timesByDate = {};
+                data.forEach(record => {
+                    if (!timesByDate[record.date]) timesByDate[record.date] = [];
+                    timesByDate[record.date].push({ minutes: record.minutes, label: record.label });
+                });
+                updateTimeList();
+                updateSummary();
+            })
+            .catch(err => {
+                console.error("Error fetching from server:", err);
+                showToast("Не удалось загрузить данные. Попробуйте позже.");
+            })
+            .finally(() => {
+                showLoading(false);
+            });
+        }
+
+        // Обновление списка времени
+        function updateTimeList() {
+            elements.timeList.innerHTML = "";
+            for (const date in timesByDate) {
+                const dateGroup = document.createElement("div");
+                dateGroup.className = "date-group";
+
+                const dateHeader = document.createElement("div");
+                dateHeader.className = "date-header";
+                dateHeader.textContent = `${date} (Всего: ${timesByDate[date].reduce((sum, entry) => sum + entry.minutes, 0)} минут)`;
+                dateGroup.appendChild(dateHeader);
+
+                timesByDate[date].forEach((entry, index) => {
+                    const entryDiv = document.createElement("div");
+                    entryDiv.className = "time-entry";
+                    entryDiv.innerHTML = `
+                        ${entry.minutes} минут - ${entry.label}
+                        <div class="actions">
+                            <button class="edit-btn" onclick="editEntry('${date}', ${index})">✏️</button>
+                            <button class="delete-btn" onclick="deleteEntry('${date}', ${index})">🗑️</button>
+                        </div>
+                    `;
+                    dateGroup.appendChild(entryDiv);
+                });
+
+                elements.timeList.appendChild(dateGroup);
+            }
+        }
+
+        // Обновление сводки
+        function updateSummary() {
+            const today = new Date().toISOString().split("T")[0];
+            const todayEntries = timesByDate[today] || [];
+
+            const sleepTotal = todayEntries
+                .filter(entry => entry.label === "Сон")
+                .reduce((sum, entry) => sum + entry.minutes, 0);
+            const feedTotal = todayEntries
+                .filter(entry => entry.label === "Кормление")
+                .reduce((sum, entry) => sum + entry.minutes, 0);
+            const playTotal = todayEntries
+                .filter(entry => entry.label === "Игра")
+                .reduce((sum, entry) => sum + entry.minutes, 0);
+
+            elements.summary.innerHTML = `
+                <div class="summary-item">
+                    <span>💤 Сон: ${sleepTotal} минут</span>
+                </div>
+                <div class="summary-item">
+                    <span>🍼 Кормление: ${feedTotal} минут</span>
+                </div>
+                <div class="summary-item">
+                    <span>🪇 Игра: ${playTotal} минут</span>
+                </div>
+            `;
+        }
+
+        // Редактирование записи
+        function editEntry(date, index) {
+            const entry = timesByDate[date][index];
+            elements.timeInput.value = entry.minutes;
+            selectCategory(entry.label, document.querySelector(`.category-btn[data-label="${entry.label}"]`));
+            elements.manualInput.classList.add("show");
+            deleteEntry(date, index, false);
+        }
+
+        // Удаление записи
+        function deleteEntry(date, index, fetchAfter = true) {
+            timesByDate[date].splice(index, 1);
+            if (timesByDate[date].length === 0) delete timesByDate[date];
+            updateTimeList();
+            updateSummary();
+
+            if (fetchAfter) {
+                fetch(`${BASE_URL}/reset`, {
+                    method: "POST",
+                    headers: {
+                        "X-Telegram-WebApp-Init-Data": tg.initData,
+                        "ngrok-skip-browser-warning": "true"
+                    }
+                })
+                .then(() => {
+                    Object.keys(timesByDate).forEach(d => {
+                        timesByDate[d].forEach(entry => saveToServer(d, entry.minutes, entry.label));
+                    });
+                })
+                .catch(err => {
+                    console.error("Error resetting data:", err);
+                    showToast("Не удалось обновить данные. Попробуйте позже.");
+                });
+            }
         }
     </script>
 </body>
