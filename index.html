@@ -406,7 +406,7 @@
     </div>
 
     <div class="container">
-        <h1 id="appTitle">Трекер активности малыша v0.1.8</h1>
+        <h1 id="appTitle">Трекер активности малыша v0.1.9</h1>
         <div class="category-buttons">
             <button class="category-btn sleep active" data-label="Сон" onclick="console.log('Category clicked: Сон'); selectCategory('Сон', this)">
                 <span>💤 Сон</span>
@@ -471,7 +471,7 @@
         let isDarkTheme = false;
         let tg = null;
         let BASE_URL = "https://8a0c-109-123-246-190.ngrok-free.app";
-        const APP_VERSION = "0.1.8";
+        const APP_VERSION = "0.1.9";
 
         // DOM элементы
         const elements = {
@@ -496,41 +496,28 @@
         function initApp() {
             console.log('Initializing Telegram WebApp...');
             
-            try {
-                // Проверяем наличие Telegram WebApp
-                if (window.Telegram && window.Telegram.WebApp) {
-                    tg = window.Telegram.WebApp;
-                    console.log('Telegram WebApp found:', tg);
-                    
-                    // Проверяем, что мы внутри Telegram
-                    if (window.Telegram.WebApp.initData || window.Telegram.WebApp.initDataUnsafe) {
-                        console.log('Running inside Telegram');
-                        
-                        // Инициализируем WebApp
-                        tg.ready();
-                        
-                        // Получаем данные пользователя
-                        const user = tg.initDataUnsafe?.user;
-                        if (user) {
-                            console.log('User data:', user);
-                            document.getElementById('appTitle').textContent = `Трекер активности малыша v${APP_VERSION} - ${user.first_name}`;
-                        } else {
-                            document.getElementById('appTitle').textContent = `Трекер активности малыша v${APP_VERSION}`;
-                        }
-
-                        // Загружаем данные
-                        fetchTimesFromServer();
-                    } else {
-                        console.error('Not running inside Telegram - no initData');
-                        showToast("Пожалуйста, откройте приложение через Telegram бота.");
-                    }
+            // Проверяем наличие Telegram WebApp
+            if (window.Telegram && window.Telegram.WebApp) {
+                tg = window.Telegram.WebApp;
+                console.log('Telegram WebApp found');
+                
+                // Инициализируем WebApp
+                tg.ready();
+                
+                // Получаем данные пользователя
+                const user = tg.initDataUnsafe?.user;
+                if (user) {
+                    console.log('User data:', user);
+                    document.getElementById('appTitle').textContent = `Трекер активности малыша v${APP_VERSION} - ${user.first_name}`;
                 } else {
-                    console.error('Telegram WebApp not found');
-                    showToast("Пожалуйста, откройте приложение через Telegram бота.");
+                    document.getElementById('appTitle').textContent = `Трекер активности малыша v${APP_VERSION}`;
                 }
-            } catch (error) {
-                console.error('Error during initialization:', error);
-                showToast("Ошибка инициализации. Пожалуйста, откройте приложение через Telegram бота.");
+
+                // Загружаем данные
+                fetchTimesFromServer();
+            } else {
+                console.error('Telegram WebApp not found');
+                showToast("Пожалуйста, откройте приложение через Telegram бота.");
             }
         }
 
@@ -538,38 +525,17 @@
         console.log('Setting up event listeners...');
         document.addEventListener("DOMContentLoaded", () => {
             console.log('DOM Content Loaded');
-            // Пробуем инициализировать несколько раз с интервалом
-            let attempts = 0;
-            const maxAttempts = 5;
-            
-            const tryInit = () => {
-                if (attempts < maxAttempts) {
-                    attempts++;
-                    console.log(`Initialization attempt ${attempts}`);
-                    initApp();
-                    
-                    if (!tg || !tg.initDataUnsafe) {
-                        setTimeout(tryInit, 1000);
-                    }
-                }
-            };
-            
-            tryInit();
+            initApp();
         });
 
         // Проверка инициализации Telegram WebApp
         function checkTelegramInit() {
-            try {
-                if (!tg || !tg.initDataUnsafe) {
-                    console.error('Telegram WebApp not properly initialized');
-                    showToast("Пожалуйста, откройте приложение через Telegram бота.");
-                    return false;
-                }
-                return true;
-            } catch (error) {
-                console.error('Error checking Telegram initialization:', error);
+            if (!tg) {
+                console.error('Telegram WebApp not initialized');
+                showToast("Пожалуйста, откройте приложение через Telegram бота.");
                 return false;
             }
+            return true;
         }
 
         // Настройка обработчиков событий
