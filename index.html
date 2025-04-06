@@ -53,7 +53,7 @@
         let timesByDate = {};
         let timerSeconds = 0;
         let timerInterval = null;
-        const BASE_URL = "https://eba4-109-123-246-190.ngrok-free.app"; // Убедись, что URL актуален
+        const BASE_URL = "https://eba4-109-123-246-190.ngrok-free.app"; // Новый URL от ngrok
 
         window.Telegram.WebApp.ready();
 
@@ -84,13 +84,18 @@
             console.log("Saving to server:", { date, minutes, label });
             fetch(`${BASE_URL}/save-time`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "true" // Обход предупреждения ngrok
+                },
                 body: JSON.stringify({ date, minutes, label })
             })
             .then(response => {
                 console.log("Save response status:", response.status);
                 if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
+                    return response.text().then(text => {
+                        throw new Error(`HTTP error! Status: ${response.status}, Response: ${text}`);
+                    });
                 }
                 return response.json();
             })
@@ -109,7 +114,10 @@
             console.log("Fetching times from server...");
             fetch(`${BASE_URL}/get-times`, {
                 method: "GET",
-                headers: { "Accept": "application/json" }
+                headers: {
+                    "Accept": "application/json",
+                    "ngrok-skip-browser-warning": "true" // Обход предупреждения ngrok
+                }
             })
             .then(response => {
                 console.log("Fetch response status:", response.status);
@@ -193,11 +201,18 @@
 
         function resetAll() {
             console.log("Resetting all data...");
-            fetch(`${BASE_URL}/reset`, { method: "POST" })
+            fetch(`${BASE_URL}/reset`, {
+                method: "POST",
+                headers: {
+                    "ngrok-skip-browser-warning": "true" // Обход предупреждения ngrok
+                }
+            })
             .then(response => {
                 console.log("Reset response status:", response.status);
                 if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
+                    return response.text().then(text => {
+                        throw new Error(`HTTP error! Status: ${response.status}, Response: ${text}`);
+                    });
                 }
                 return response.json();
             })
