@@ -401,7 +401,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="loading">
+    <div class="loading" id="loading">
         <div class="loading-spinner"></div>
     </div>
 
@@ -419,19 +419,19 @@
             </button>
         </div>
         <div class="quick-minutes" id="quickMinutes">
-            <button class="quick-btn" onclick="console.log('Quick minutes clicked: 15'); setMinutes(15)">15 мин</button>
-            <button class="quick-btn" onclick="console.log('Quick minutes clicked: 30'); setMinutes(30)">30 мин</button>
-            <button class="quick-btn" onclick="console.log('Quick minutes clicked: 45'); setMinutes(45)">45 мин</button>
-            <button class="quick-btn" onclick="console.log('Quick minutes clicked: 60'); setMinutes(60)">1 ч</button>
-            <button class="quick-btn" onclick="console.log('Quick minutes clicked: 75'); setMinutes(75)">1 ч 15 мин</button>
-            <button class="quick-btn" onclick="console.log('Quick minutes clicked: 90'); setMinutes(90)">1 ч 30 мин</button>
-            <button class="quick-btn" onclick="console.log('Quick minutes clicked: 120'); setMinutes(120)">2 ч</button>
+            <button class="quick-btn" data-minutes="15" onclick="console.log('Quick minutes clicked: 15'); setMinutes(15)">15 мин</button>
+            <button class="quick-btn" data-minutes="30" onclick="console.log('Quick minutes clicked: 30'); setMinutes(30)">30 мин</button>
+            <button class="quick-btn" data-minutes="45" onclick="console.log('Quick minutes clicked: 45'); setMinutes(45)">45 мин</button>
+            <button class="quick-btn" data-minutes="60" onclick="console.log('Quick minutes clicked: 60'); setMinutes(60)">1 ч</button>
+            <button class="quick-btn" data-minutes="75" onclick="console.log('Quick minutes clicked: 75'); setMinutes(75)">1 ч 15 мин</button>
+            <button class="quick-btn" data-minutes="90" onclick="console.log('Quick minutes clicked: 90'); setMinutes(90)">1 ч 30 мин</button>
+            <button class="quick-btn" data-minutes="120" onclick="console.log('Quick minutes clicked: 120'); setMinutes(120)">2 ч</button>
         </div>
-        <div class="toggle-link" onclick="console.log('Toggle manual clicked'); toggleManualInput()">Ввести минуты вручную</div>
+        <div class="toggle-link" id="toggleManual">Ввести минуты вручную</div>
         <div class="manual-input" id="manualInput">
             <input type="number" id="timeInput" min="0" placeholder="Введите минуты">
         </div>
-        <button class="add-time-btn" onclick="console.log('Add time clicked'); addTime()">Добавить время</button>
+        <button class="add-time-btn" id="addTimeBtn" onclick="console.log('Add time clicked'); addTime()">Добавить время</button>
         <div class="timer-buttons">
             <button id="timerBtn" class="timer-btn start" onclick="console.log('Timer clicked'); toggleTimer()">Старт</button>
         </div>
@@ -484,7 +484,7 @@
             modalOverlay: document.getElementById('modalOverlay'),
             modal: document.getElementById('modal'),
             resetLink: document.getElementById('resetLink'),
-            loading: document.querySelector('.loading'),
+            loading: document.getElementById('loading'),
             toast: document.getElementById('toast'),
             categoryButtons: document.querySelectorAll('.category-btn'),
             quickButtons: document.querySelectorAll('.quick-btn'),
@@ -501,12 +501,12 @@
                 tg = window.Telegram.WebApp;
                 console.log('Telegram WebApp found');
                 
+                // Инициализируем WebApp
+                tg.ready();
+                
                 // Проверяем, что мы внутри Telegram
                 if (tg.platform && tg.platform !== 'unknown') {
                     console.log('Running inside Telegram, platform:', tg.platform);
-                    
-                    // Инициализируем WebApp
-                    tg.ready();
                     
                     // Получаем данные пользователя
                     const user = tg.initDataUnsafe?.user;
@@ -516,6 +516,9 @@
                     } else {
                         document.getElementById('appTitle').textContent = `Трекер активности малыша v${APP_VERSION}`;
                     }
+
+                    // Настройка обработчиков событий
+                    setupEventListeners();
 
                     // Загружаем данные
                     fetchTimesFromServer();
@@ -530,11 +533,22 @@
         }
 
         // Инициализация при загрузке
-        console.log('Setting up event listeners...');
         document.addEventListener("DOMContentLoaded", () => {
             console.log('DOM Content Loaded');
-            // Даем время на инициализацию Telegram WebApp
-            setTimeout(initApp, 500);
+            // Ждём, пока Telegram WebApp будет готов
+            if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp) {
+                window.Telegram.WebApp.onEvent('ready', initApp);
+            } else {
+                // Если Telegram WebApp не загрузился, пробуем через 1 секунду
+                setTimeout(() => {
+                    if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp) {
+                        window.Telegram.WebApp.onEvent('ready', initApp);
+                    } else {
+                        console.error('Telegram WebApp failed to load');
+                        showToast("Не удалось инициализировать приложение. Попробуйте перезапустить Telegram.");
+                    }
+                }, 1000);
+            }
         });
 
         // Проверка инициализации Telegram WebApp
@@ -544,20 +558,27 @@
                 showToast("Пожалуйста, откройте приложение через Telegram бота.");
                 return false;
             }
+            if (!tg.initData) {
+                console.error('Telegram initData not available');
+                showToast("Не удалось получить данные инициализации Telegram.");
+                return false;
+            }
             return true;
         }
 
         // Настройка обработчиков событий
         function setupEventListeners() {
             // Обработка закрытия приложения
-            tg.onEvent('closeButtonClicked', () => {
-                tg.close();
-            });
+            if (tg) {
+                tg.onEvent('closeButtonClicked', () => {
+                    tg.close();
+                });
 
-            // Обработка изменения размера экрана
-            tg.onEvent('viewportChanged', () => {
-                // Адаптация под размер экрана
-            });
+                // Обработка изменения размера экрана
+                tg.onEvent('viewportChanged', () => {
+                    // Адаптация под размер экрана
+                });
+            }
 
             // Обработка нажатия клавиш
             document.addEventListener('keydown', (e) => {
@@ -590,14 +611,6 @@
 
             // Обработчик для таймера
             elements.timerBtn.addEventListener('click', toggleTimer);
-
-            // Обработчики для модального окна
-            document.querySelector('.menu-btn').addEventListener('click', openModal);
-            document.querySelector('.close-btn').addEventListener('click', closeModal);
-            document.querySelector('.modal-content button:nth-child(1)').addEventListener('click', showStats);
-            document.querySelector('.modal-content button:nth-child(2)').addEventListener('click', toggleTheme);
-            document.querySelector('.modal-content button:nth-child(3)').addEventListener('click', showAbout);
-            elements.resetLink.addEventListener('click', confirmReset);
         }
 
         // Показ загрузки
