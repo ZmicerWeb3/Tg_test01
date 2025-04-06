@@ -53,24 +53,20 @@
         let timesByDate = {};
         let timerSeconds = 0;
         let timerInterval = null;
-        const BASE_URL = "https://e91f-109-123-246-190.ngrok-free.app"; // URL от ngrok
+        const BASE_URL = "https://eba4-109-123-246-190.ngrok-free.app"; // Убедись, что URL актуален
 
-        // Инициализация Telegram Mini App
         window.Telegram.WebApp.ready();
 
-        // Загрузка данных при старте
         document.addEventListener("DOMContentLoaded", () => {
             setDefaultDate();
             fetchTimesFromServer();
         });
 
-        // Установка сегодняшней даты по умолчанию
         function setDefaultDate() {
             const today = new Date().toISOString().split("T")[0];
             document.getElementById("dateInput").value = today;
         }
 
-        // Добавление времени вручную
         function addTime() {
             const date = document.getElementById("dateInput").value;
             const minutes = parseInt(document.getElementById("timeInput").value);
@@ -84,20 +80,22 @@
             saveToServer(date, minutes, label);
         }
 
-        // Сохранение данных на сервер
         function saveToServer(date, minutes, label) {
+            console.log("Saving to server:", { date, minutes, label });
             fetch(`${BASE_URL}/save-time`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ date, minutes, label })
             })
             .then(response => {
+                console.log("Save response status:", response.status);
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
                 return response.json();
             })
-            .then(() => {
+            .then(data => {
+                console.log("Save response data:", data);
                 document.getElementById("timeInput").value = "";
                 fetchTimesFromServer();
             })
@@ -107,16 +105,23 @@
             });
         }
 
-        // Получение данных с сервера
         function fetchTimesFromServer() {
-            fetch(`${BASE_URL}/get-times`)
+            console.log("Fetching times from server...");
+            fetch(`${BASE_URL}/get-times`, {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            })
             .then(response => {
+                console.log("Fetch response status:", response.status);
                 if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
+                    return response.text().then(text => {
+                        throw new Error(`HTTP error! Status: ${response.status}, Response: ${text}`);
+                    });
                 }
                 return response.json();
             })
             .then(data => {
+                console.log("Fetched data:", data);
                 timesByDate = {};
                 data.forEach(record => {
                     if (!timesByDate[record.date]) timesByDate[record.date] = [];
@@ -130,7 +135,6 @@
             });
         }
 
-        // Обновление списка времени
         function updateTimeList() {
             const timeList = document.getElementById("timeList");
             timeList.innerHTML = "";
@@ -154,7 +158,6 @@
             }
         }
 
-        // Управление таймером
         function startTimer() {
             if (!timerInterval) {
                 timerInterval = setInterval(() => {
@@ -188,16 +191,18 @@
             document.getElementById("timer").textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
         }
 
-        // Сброс всех данных
         function resetAll() {
+            console.log("Resetting all data...");
             fetch(`${BASE_URL}/reset`, { method: "POST" })
             .then(response => {
+                console.log("Reset response status:", response.status);
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
                 return response.json();
             })
-            .then(() => {
+            .then(data => {
+                console.log("Reset response data:", data);
                 timesByDate = {};
                 updateTimeList();
                 timerSeconds = 0;
