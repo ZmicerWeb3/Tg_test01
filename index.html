@@ -406,7 +406,7 @@
     </div>
 
     <div class="container">
-        <h1 id="appTitle">Трекер активности малыша v0.1.9</h1>
+        <h1 id="appTitle">Трекер активности малыша v0.1.10</h1>
         <div class="category-buttons">
             <button class="category-btn sleep active" data-label="Сон" onclick="console.log('Category clicked: Сон'); selectCategory('Сон', this)">
                 <span>💤 Сон</span>
@@ -471,7 +471,7 @@
         let isDarkTheme = false;
         let tg = null;
         let BASE_URL = "https://8a0c-109-123-246-190.ngrok-free.app";
-        const APP_VERSION = "0.1.9";
+        const APP_VERSION = "0.1.10";
 
         // DOM элементы
         const elements = {
@@ -497,24 +497,32 @@
             console.log('Initializing Telegram WebApp...');
             
             // Проверяем наличие Telegram WebApp
-            if (window.Telegram && window.Telegram.WebApp) {
+            if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp) {
                 tg = window.Telegram.WebApp;
                 console.log('Telegram WebApp found');
                 
-                // Инициализируем WebApp
-                tg.ready();
-                
-                // Получаем данные пользователя
-                const user = tg.initDataUnsafe?.user;
-                if (user) {
-                    console.log('User data:', user);
-                    document.getElementById('appTitle').textContent = `Трекер активности малыша v${APP_VERSION} - ${user.first_name}`;
-                } else {
-                    document.getElementById('appTitle').textContent = `Трекер активности малыша v${APP_VERSION}`;
-                }
+                // Проверяем, что мы внутри Telegram
+                if (tg.platform && tg.platform !== 'unknown') {
+                    console.log('Running inside Telegram, platform:', tg.platform);
+                    
+                    // Инициализируем WebApp
+                    tg.ready();
+                    
+                    // Получаем данные пользователя
+                    const user = tg.initDataUnsafe?.user;
+                    if (user) {
+                        console.log('User data:', user);
+                        document.getElementById('appTitle').textContent = `Трекер активности малыша v${APP_VERSION} - ${user.first_name}`;
+                    } else {
+                        document.getElementById('appTitle').textContent = `Трекер активности малыша v${APP_VERSION}`;
+                    }
 
-                // Загружаем данные
-                fetchTimesFromServer();
+                    // Загружаем данные
+                    fetchTimesFromServer();
+                } else {
+                    console.error('Not running inside Telegram');
+                    showToast("Пожалуйста, откройте приложение через Telegram бота.");
+                }
             } else {
                 console.error('Telegram WebApp not found');
                 showToast("Пожалуйста, откройте приложение через Telegram бота.");
@@ -525,13 +533,14 @@
         console.log('Setting up event listeners...');
         document.addEventListener("DOMContentLoaded", () => {
             console.log('DOM Content Loaded');
-            initApp();
+            // Даем время на инициализацию Telegram WebApp
+            setTimeout(initApp, 500);
         });
 
         // Проверка инициализации Telegram WebApp
         function checkTelegramInit() {
-            if (!tg) {
-                console.error('Telegram WebApp not initialized');
+            if (!tg || !tg.platform || tg.platform === 'unknown') {
+                console.error('Telegram WebApp not properly initialized');
                 showToast("Пожалуйста, откройте приложение через Telegram бота.");
                 return false;
             }
