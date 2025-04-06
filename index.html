@@ -369,25 +369,6 @@
             color: var(--text-secondary);
             cursor: not-allowed;
         }
-
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--container-bg);
-            color: var(--text-color);
-            padding: 10px 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .toast.show {
-            opacity: 1;
-        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
@@ -441,7 +422,7 @@
                 <button class="close-btn" onclick="closeModal()">✖</button>
             </div>
             <div class="modal-content">
-                <button id="fullscreenBtn" onclick="toggleFullscreen()">🖥️ Полноэкранный режим</button>
+                <button onclick="toggleFullscreen()">🖥️ Полноэкранный режим</button>
                 <button onclick="alert('Статистика за неделю скоро появится!')">📊 Статистика за неделю</button>
                 <button onclick="toggleTheme()">🌙 Переключить тему</button>
                 <button onclick="alert('Трекер активности малыша\nВерсия 0.1.0\nСоздано для родителей с ❤️')">ℹ️ О приложении</button>
@@ -449,8 +430,6 @@
             </div>
         </div>
     </div>
-
-    <div class="toast" id="toast"></div>
 
     <script>
         let timesByDate = {};
@@ -462,141 +441,41 @@
         let isFullscreen = false;
         const BASE_URL = "https://8a0c-109-123-246-190.ngrok-free.app";
         const APP_VERSION = "0.1.0";
-        let tg = null;
 
-        // Показ уведомления
-        function showToast(message, duration = 3000) {
-            const toast = document.getElementById('toast');
-            if (!toast) {
-                console.error("Toast element not found!");
-                return;
-            }
-            toast.textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, duration);
-        }
+        window.Telegram.WebApp.ready();
 
-        // Функция открытия модального окна
-        function openModal() {
-            console.log("openModal called"); // Диагностика: проверяем, вызывается ли функция
-            try {
-                const modalOverlay = document.getElementById("modalOverlay");
-                const modal = document.getElementById("modal");
-
-                if (!modalOverlay || !modal) {
-                    console.error("Modal elements not found:", { modalOverlay, modal });
-                    showToast("Ошибка: Не удалось открыть меню.");
-                    return;
-                }
-
-                modalOverlay.style.display = "block";
-                setTimeout(() => {
-                    modal.classList.add("open");
-                    console.log("Modal opened successfully");
-                }, 10);
-
-                updateResetLink();
-            } catch (err) {
-                console.error("Error in openModal:", err);
-                showToast("Ошибка при открытии меню.");
-            }
-        }
-
-        // Функция закрытия модального окна
-        function closeModal() {
-            console.log("closeModal called");
-            try {
-                const modalOverlay = document.getElementById("modalOverlay");
-                const modal = document.getElementById("modal");
-
-                if (!modalOverlay || !modal) {
-                    console.error("Modal elements not found:", { modalOverlay, modal });
-                    return;
-                }
-
-                modal.classList.remove("open");
-                setTimeout(() => {
-                    modalOverlay.style.display = "none";
-                    console.log("Modal closed successfully");
-                }, 300);
-            } catch (err) {
-                console.error("Error in closeModal:", err);
-                showToast("Ошибка при закрытии меню.");
-            }
-        }
-
-        // Инициализация Telegram WebApp с ожиданием
-        function initTelegram(callback) {
-            const maxAttempts = 10;
-            let attempts = 0;
-
-            function tryInit() {
-                if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp) {
-                    tg = window.Telegram.WebApp;
-                    tg.ready();
-                    console.log('Telegram WebApp initialized, platform:', tg.platform);
-                    callback(true);
-                } else {
-                    attempts++;
-                    if (attempts < maxAttempts) {
-                        console.log(`Telegram WebApp not ready, attempt ${attempts}/${maxAttempts}`);
-                        setTimeout(tryInit, 500); // Пробуем снова через 500 мс
-                    } else {
-                        console.error('Telegram WebApp failed to initialize after max attempts');
-                        showToast("Пожалуйста, откройте приложение через Telegram бота.");
-                        callback(false);
-                    }
-                }
-            }
-
-            tryInit();
-        }
-
-        // Инициализация приложения
         document.addEventListener("DOMContentLoaded", () => {
-            console.log("DOM fully loaded");
-            initTelegram((success) => {
-                if (success) {
-                    fetchTimesFromServer();
-                } else {
-                    // Если Telegram не инициализирован, всё равно загружаем данные
-                    fetchTimesFromServer();
-                }
-            });
+            fetchTimesFromServer();
         });
 
         function toggleFullscreen() {
-            if (!tg) {
-                showToast("Полноэкранный режим недоступен вне Telegram.");
-                return;
-            }
-
-            const fullscreenBtn = document.getElementById("fullscreenBtn");
-
             if (!isFullscreen) {
-                try {
-                    tg.requestFullscreen();
-                    isFullscreen = true;
-                    fullscreenBtn.innerHTML = "🖱️ Обычный режим";
-                    showToast("Полноэкранный режим включён.");
-                } catch (err) {
-                    console.error("Ошибка при включении полноэкранного режима:", err);
-                    showToast("Не удалось включить полноэкранный режим.");
-                }
+                window.Telegram.WebApp.requestFullscreen();
+                isFullscreen = true;
             } else {
-                try {
-                    tg.exitFullscreen();
-                    isFullscreen = false;
-                    fullscreenBtn.innerHTML = "🖥️ Полноэкранный режим";
-                    showToast("Полноэкранный режим выключен.");
-                } catch (err) {
-                    console.error("Ошибка при выходе из полноэкранного режима:", err);
-                    showToast("Не удалось выйти из полноэкранного режима.");
-                }
+                window.Telegram.WebApp.exitFullscreen();
+                isFullscreen = false;
             }
             closeModal();
+        }
+
+        function openModal() {
+            const modalOverlay = document.getElementById("modalOverlay");
+            const modal = document.getElementById("modal");
+            modalOverlay.style.display = "block";
+            setTimeout(() => {
+                modal.classList.add("open");
+            }, 10);
+            updateResetLink();
+        }
+
+        function closeModal() {
+            const modalOverlay = document.getElementById("modalOverlay");
+            const modal = document.getElementById("modal");
+            modal.classList.remove("open");
+            setTimeout(() => {
+                modalOverlay.style.display = "none";
+            }, 300);
         }
 
         function toggleTheme() {
@@ -842,10 +721,6 @@
 
         function updateResetLink() {
             const resetLink = document.getElementById("resetLink");
-            if (!resetLink) {
-                console.error("resetLink element not found!");
-                return;
-            }
             if (isTimerRunning) {
                 resetLink.classList.add("inactive");
             } else {
