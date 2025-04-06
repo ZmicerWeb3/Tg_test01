@@ -464,6 +464,69 @@
         const APP_VERSION = "0.1.0";
         let tg = null;
 
+        // Показ уведомления
+        function showToast(message, duration = 3000) {
+            const toast = document.getElementById('toast');
+            if (!toast) {
+                console.error("Toast element not found!");
+                return;
+            }
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
+
+        // Функция открытия модального окна
+        function openModal() {
+            console.log("openModal called"); // Диагностика: проверяем, вызывается ли функция
+            try {
+                const modalOverlay = document.getElementById("modalOverlay");
+                const modal = document.getElementById("modal");
+
+                if (!modalOverlay || !modal) {
+                    console.error("Modal elements not found:", { modalOverlay, modal });
+                    showToast("Ошибка: Не удалось открыть меню.");
+                    return;
+                }
+
+                modalOverlay.style.display = "block";
+                setTimeout(() => {
+                    modal.classList.add("open");
+                    console.log("Modal opened successfully");
+                }, 10);
+
+                updateResetLink();
+            } catch (err) {
+                console.error("Error in openModal:", err);
+                showToast("Ошибка при открытии меню.");
+            }
+        }
+
+        // Функция закрытия модального окна
+        function closeModal() {
+            console.log("closeModal called");
+            try {
+                const modalOverlay = document.getElementById("modalOverlay");
+                const modal = document.getElementById("modal");
+
+                if (!modalOverlay || !modal) {
+                    console.error("Modal elements not found:", { modalOverlay, modal });
+                    return;
+                }
+
+                modal.classList.remove("open");
+                setTimeout(() => {
+                    modalOverlay.style.display = "none";
+                    console.log("Modal closed successfully");
+                }, 300);
+            } catch (err) {
+                console.error("Error in closeModal:", err);
+                showToast("Ошибка при закрытии меню.");
+            }
+        }
+
         // Инициализация Telegram WebApp с ожиданием
         function initTelegram(callback) {
             const maxAttempts = 10;
@@ -491,18 +554,9 @@
             tryInit();
         }
 
-        // Показ уведомления
-        function showToast(message, duration = 3000) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, duration);
-        }
-
         // Инициализация приложения
         document.addEventListener("DOMContentLoaded", () => {
+            console.log("DOM fully loaded");
             initTelegram((success) => {
                 if (success) {
                     fetchTimesFromServer();
@@ -543,25 +597,6 @@
                 }
             }
             closeModal();
-        }
-
-        function openModal() {
-            const modalOverlay = document.getElementById("modalOverlay");
-            const modal = document.getElementById("modal");
-            modalOverlay.style.display = "block";
-            setTimeout(() => {
-                modal.classList.add("open");
-            }, 10);
-            updateResetLink();
-        }
-
-        function closeModal() {
-            const modalOverlay = document.getElementById("modalOverlay");
-            const modal = document.getElementById("modal");
-            modal.classList.remove("open");
-            setTimeout(() => {
-                modalOverlay.style.display = "none";
-            }, 300);
         }
 
         function toggleTheme() {
@@ -807,6 +842,10 @@
 
         function updateResetLink() {
             const resetLink = document.getElementById("resetLink");
+            if (!resetLink) {
+                console.error("resetLink element not found!");
+                return;
+            }
             if (isTimerRunning) {
                 resetLink.classList.add("inactive");
             } else {
