@@ -369,6 +369,25 @@
             color: var(--text-secondary);
             cursor: not-allowed;
         }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--container-bg);
+            color: var(--text-color);
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
@@ -376,7 +395,7 @@
     <div class="container">
         <div class="header">
             <h1>Трекер активности малыша</h1>
-            <span class="app-version">v0.1.11</span>
+            <span class="app-version">v0.1.12</span>
         </div>
         <div class="category-buttons">
             <button class="category-btn sleep active" data-label="Сон" onclick="selectCategory('Сон', this)">
@@ -422,7 +441,7 @@
                 <button class="close-btn" onclick="closeModal()">✖</button>
             </div>
             <div class="modal-content">
-                <button onclick="toggleFullscreen()">🖥️ Полноэкранный режим</button>
+                <button id="fullscreenBtn" onclick="toggleFullscreen()">🖥️ Полноэкранный режим</button>
                 <button onclick="alert('Статистика за неделю скоро появится!')">📊 Статистика за неделю</button>
                 <button onclick="toggleTheme()">🌙 Переключить тему</button>
                 <button onclick="alert('Трекер активности малыша\nВерсия 0.1.0\nСоздано для родителей с ❤️')">ℹ️ О приложении</button>
@@ -430,6 +449,8 @@
             </div>
         </div>
     </div>
+
+    <div class="toast" id="toast"></div>
 
     <script>
         let timesByDate = {};
@@ -441,20 +462,66 @@
         let isFullscreen = false;
         const BASE_URL = "https://8a0c-109-123-246-190.ngrok-free.app";
         const APP_VERSION = "0.1.0";
+        let tg = null;
 
-        window.Telegram.WebApp.ready();
+        // Инициализация Telegram WebApp
+        function initTelegram() {
+            if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp) {
+                tg = window.Telegram.WebApp;
+                tg.ready();
+                console.log('Telegram WebApp initialized, platform:', tg.platform);
+                return true;
+            }
+            console.error('Telegram WebApp not found');
+            showToast("Пожалуйста, откройте приложение через Telegram бота.");
+            return false;
+        }
 
+        // Показ уведомления
+        function showToast(message, duration = 3000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
+
+        // Инициализация приложения
         document.addEventListener("DOMContentLoaded", () => {
-            fetchTimesFromServer();
+            if (initTelegram()) {
+                fetchTimesFromServer();
+            }
         });
 
         function toggleFullscreen() {
+            if (!tg) {
+                showToast("Telegram WebApp не инициализирован.");
+                return;
+            }
+
+            const fullscreenBtn = document.getElementById("fullscreenBtn");
+
             if (!isFullscreen) {
-                window.Telegram.WebApp.requestFullscreen();
-                isFullscreen = true;
+                try {
+                    tg.requestFullscreen();
+                    isFullscreen = true;
+                    fullscreenBtn.innerHTML = "🖱️ Обычный режим";
+                    showToast("Полноэкранный режим включён.");
+                } catch (err) {
+                    console.error("Ошибка при включении полноэкранного режима:", err);
+                    showToast("Не удалось включить полноэкранный режим.");
+                }
             } else {
-                window.Telegram.WebApp.exitFullscreen();
-                isFullscreen = false;
+                try {
+                    tg.exitFullscreen();
+                    isFullscreen = false;
+                    fullscreenBtn.innerHTML = "🖥️ Полноэкранный режим";
+                    showToast("Полноэкранный режим выключен.");
+                } catch (err) {
+                    console.error("Ошибка при выходе из полноэкранного режима:", err);
+                    showToast("Не удалось выйти из полноэкранного режима.");
+                }
             }
             closeModal();
         }
