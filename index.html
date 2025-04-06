@@ -395,7 +395,7 @@
     <div class="container">
         <div class="header">
             <h1>Трекер активности малыша</h1>
-            <span class="app-version">v0.1.12</span>
+            <span class="app-version">v0.1.0</span>
         </div>
         <div class="category-buttons">
             <button class="category-btn sleep active" data-label="Сон" onclick="selectCategory('Сон', this)">
@@ -464,17 +464,31 @@
         const APP_VERSION = "0.1.0";
         let tg = null;
 
-        // Инициализация Telegram WebApp
-        function initTelegram() {
-            if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp) {
-                tg = window.Telegram.WebApp;
-                tg.ready();
-                console.log('Telegram WebApp initialized, platform:', tg.platform);
-                return true;
+        // Инициализация Telegram WebApp с ожиданием
+        function initTelegram(callback) {
+            const maxAttempts = 10;
+            let attempts = 0;
+
+            function tryInit() {
+                if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp) {
+                    tg = window.Telegram.WebApp;
+                    tg.ready();
+                    console.log('Telegram WebApp initialized, platform:', tg.platform);
+                    callback(true);
+                } else {
+                    attempts++;
+                    if (attempts < maxAttempts) {
+                        console.log(`Telegram WebApp not ready, attempt ${attempts}/${maxAttempts}`);
+                        setTimeout(tryInit, 500); // Пробуем снова через 500 мс
+                    } else {
+                        console.error('Telegram WebApp failed to initialize after max attempts');
+                        showToast("Пожалуйста, откройте приложение через Telegram бота.");
+                        callback(false);
+                    }
+                }
             }
-            console.error('Telegram WebApp not found');
-            showToast("Пожалуйста, откройте приложение через Telegram бота.");
-            return false;
+
+            tryInit();
         }
 
         // Показ уведомления
@@ -489,14 +503,19 @@
 
         // Инициализация приложения
         document.addEventListener("DOMContentLoaded", () => {
-            if (initTelegram()) {
-                fetchTimesFromServer();
-            }
+            initTelegram((success) => {
+                if (success) {
+                    fetchTimesFromServer();
+                } else {
+                    // Если Telegram не инициализирован, всё равно загружаем данные
+                    fetchTimesFromServer();
+                }
+            });
         });
 
         function toggleFullscreen() {
             if (!tg) {
-                showToast("Telegram WebApp не инициализирован.");
+                showToast("Полноэкранный режим недоступен вне Telegram.");
                 return;
             }
 
