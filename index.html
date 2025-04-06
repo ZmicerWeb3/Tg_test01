@@ -462,10 +462,6 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        // Telegram WebApp API
-        const tg = window.Telegram.WebApp;
-        const BASE_URL = "https://8a0c-109-123-246-190.ngrok-free.app";
-
         // Глобальные переменные
         let timesByDate = {};
         let timerSeconds = 0;
@@ -473,6 +469,8 @@
         let selectedLabel = "Сон";
         let isTimerRunning = false;
         let isDarkTheme = false;
+        let tg = null;
+        let BASE_URL = "https://8a0c-109-123-246-190.ngrok-free.app";
 
         // DOM элементы
         const elements = {
@@ -494,22 +492,33 @@
         };
 
         // Инициализация приложения
-        console.log('Initializing Telegram WebApp...');
-        tg.ready();
-        tg.expand();
+        function initApp() {
+            console.log('Initializing Telegram WebApp...');
+            if (window.Telegram && window.Telegram.WebApp) {
+                tg = window.Telegram.WebApp;
+                tg.ready();
+                tg.expand();
 
-        // Получение данных пользователя
-        const user = tg.initDataUnsafe.user;
-        if (user) {
-            console.log('User data:', user);
-            document.getElementById('appTitle').textContent = `Трекер активности малыша - ${user.first_name}`;
+                // Получение данных пользователя
+                const user = tg.initDataUnsafe.user;
+                if (user) {
+                    console.log('User data:', user);
+                    document.getElementById('appTitle').textContent = `Трекер активности малыша - ${user.first_name}`;
+                }
+
+                // Загрузка данных
+                fetchTimesFromServer();
+            } else {
+                console.error('Telegram WebApp API is not available');
+                showToast("Ошибка инициализации приложения. Пожалуйста, откройте приложение через Telegram.");
+            }
         }
 
         // Инициализация при загрузке
         console.log('Setting up event listeners...');
         document.addEventListener("DOMContentLoaded", () => {
             console.log('DOM Content Loaded');
-            fetchTimesFromServer();
+            initApp();
         });
 
         // Настройка обработчиков событий
