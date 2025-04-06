@@ -406,7 +406,7 @@
     </div>
 
     <div class="container">
-        <h1 id="appTitle">Трекер активности малыша</h1>
+        <h1 id="appTitle">Трекер активности малыша 0.1.4</h1>
         <div class="category-buttons">
             <button class="category-btn sleep active" data-label="Сон" onclick="console.log('Category clicked: Сон'); selectCategory('Сон', this)">
                 <span>💤 Сон</span>
@@ -462,6 +462,10 @@
     <div class="toast" id="toast"></div>
 
     <script>
+        // Telegram WebApp API
+        const tg = window.Telegram.WebApp;
+        const BASE_URL = "https://8a0c-109-123-246-190.ngrok-free.app";
+
         // Глобальные переменные
         let timesByDate = {};
         let timerSeconds = 0;
@@ -488,10 +492,6 @@
             toggleManual: document.getElementById('toggleManual'),
             addTimeBtn: document.getElementById('addTimeBtn')
         };
-
-        // Telegram WebApp API
-        const tg = window.Telegram.WebApp;
-        const BASE_URL = "https://8a0c-109-123-246-190.ngrok-free.app";
 
         // Инициализация приложения
         console.log('Initializing Telegram WebApp...');
