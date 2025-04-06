@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baby Tracker</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
             /* Основные цвета */
@@ -375,13 +376,69 @@
         let selectedLabel = "Сон";
         let isTimerRunning = false;
         let isDarkTheme = false;
-        const BASE_URL = "https://8a0c-109-123-246-190.ngrok-free.app"; // Новый ngrok URL
+        const BASE_URL = "https://8a0c-109-123-246-190.ngrok-free.app";
 
-        window.Telegram.WebApp.ready();
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // Получение информации о пользователе
+        const user = tg.initDataUnsafe.user;
+        if (user) {
+            console.log('User:', user);
+            // Можно использовать user.first_name, user.last_name, user.username
+        }
+
+        // Настройка кнопки "назад"
+        tg.BackButton.show();
+        tg.BackButton.onClick(() => {
+            if (document.getElementById("modalOverlay").style.display === "block") {
+                closeModal();
+            } else {
+                tg.close();
+            }
+        });
+
+        // Настройка MainButton
+        const mainButton = tg.MainButton;
+        mainButton.setText("Добавить время");
+        mainButton.onClick(() => {
+            addTime();
+        });
+
+        // Автоматическое определение темы
+        if (tg.colorScheme === 'dark') {
+            isDarkTheme = true;
+            toggleTheme();
+        }
+
+        // Обработка изменения темы
+        tg.onEvent('themeChanged', () => {
+            isDarkTheme = tg.colorScheme === 'dark';
+            toggleTheme();
+        });
 
         document.addEventListener("DOMContentLoaded", () => {
             fetchTimesFromServer();
+            // Показываем MainButton только когда есть введенное время
+            document.getElementById("timeInput").addEventListener("input", (e) => {
+                if (e.target.value && !isNaN(e.target.value) && parseInt(e.target.value) > 0) {
+                    mainButton.show();
+                } else {
+                    mainButton.hide();
+                }
+            });
         });
+
+        // Функция для тактильной обратной связи
+        function vibrate(duration) {
+            if (tg.isVersionAtLeast('6.1')) {
+                tg.HapticFeedback.impactOccurred('light');
+            } else if (navigator.vibrate) {
+                navigator.vibrate(duration);
+            }
+        }
 
         function openModal() {
             const modalOverlay = document.getElementById("modalOverlay");
@@ -391,6 +448,7 @@
                 modal.classList.add("open");
             }, 10);
             updateResetLink();
+            vibrate(50);
         }
 
         function closeModal() {
@@ -400,6 +458,7 @@
             setTimeout(() => {
                 modalOverlay.style.display = "none";
             }, 300);
+            vibrate(50);
         }
 
         function toggleTheme() {
@@ -426,22 +485,27 @@
                 document.querySelector(".tab").style.backgroundColor = "#4a90e2";
             }
             closeModal();
+            vibrate(50);
         }
 
         function selectCategory(label, button) {
             selectedLabel = label;
             document.querySelectorAll(".category-btn").forEach(btn => btn.classList.remove("active"));
             button.classList.add("active");
+            vibrate(50);
         }
 
         function setMinutes(minutes) {
             document.getElementById("timeInput").value = minutes;
             document.getElementById("manualInput").classList.add("show");
+            mainButton.show();
+            vibrate(50);
         }
 
         function toggleManualInput() {
             const manualInput = document.getElementById("manualInput");
             manualInput.classList.toggle("show");
+            vibrate(50);
         }
 
         function addTime() {
@@ -449,15 +513,13 @@
             const minutes = parseInt(document.getElementById("timeInput").value);
 
             if (isNaN(minutes) || minutes <= 0) {
-                alert("Пожалуйста, введите корректное количество минут!");
+                tg.showAlert("Пожалуйста, введите корректное количество минут!");
                 return;
             }
 
-            if (navigator.vibrate) {
-                navigator.vibrate(300);
-            }
-
+            vibrate(300);
             saveToServer(date, minutes, selectedLabel);
+            mainButton.hide();
         }
 
         function saveToServer(date, minutes, label) {
@@ -630,10 +692,7 @@
                 document.getElementById("timerBtn").textContent = "Старт";
             }
 
-            if (navigator.vibrate) {
-                navigator.vibrate(500);
-            }
-
+            vibrate(500);
             updateResetLink();
         }
 
