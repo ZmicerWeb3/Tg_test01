@@ -406,7 +406,7 @@
     </div>
 
     <div class="container">
-        <h1 id="appTitle">Трекер активности малыша</h1>
+        <h1 id="appTitle">Трекер активности малыша 0.1</h1>
         <div class="category-buttons">
             <button class="category-btn sleep active" data-label="Сон" onclick="selectCategory('Сон', this)">
                 <span>💤 Сон</span>
@@ -496,7 +496,9 @@
             modal: document.getElementById('modal'),
             resetLink: document.getElementById('resetLink'),
             loading: document.querySelector('.loading'),
-            toast: document.getElementById('toast')
+            toast: document.getElementById('toast'),
+            categoryButtons: document.querySelectorAll('.category-btn'),
+            quickButtons: document.querySelectorAll('.quick-btn')
         };
 
         // Инициализация при загрузке
@@ -522,6 +524,22 @@
                 if (e.key === 'Escape') {
                     closeModal();
                 }
+            });
+
+            // Обработчики для кнопок категорий
+            elements.categoryButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const label = button.getAttribute('data-label');
+                    selectCategory(label, button);
+                });
+            });
+
+            // Обработчики для быстрых кнопок
+            elements.quickButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const minutes = parseInt(button.textContent);
+                    setMinutes(minutes);
+                });
             });
         }
 
@@ -566,7 +584,7 @@
         // Выбор категории
         function selectCategory(label, button) {
             selectedLabel = label;
-            document.querySelectorAll(".category-btn").forEach(btn => btn.classList.remove("active"));
+            elements.categoryButtons.forEach(btn => btn.classList.remove("active"));
             button.classList.add("active");
         }
 
