@@ -406,34 +406,34 @@
     </div>
 
     <div class="container">
-        <h1 id="appTitle">Трекер активности малыша 0.1</h1>
+        <h1 id="appTitle">Трекер активности малыша 0.1.2</h1>
         <div class="category-buttons">
-            <button class="category-btn sleep active" data-label="Сон" onclick="selectCategory('Сон', this)">
+            <button class="category-btn sleep active" data-label="Сон">
                 <span>💤 Сон</span>
             </button>
-            <button class="category-btn feed" data-label="Кормление" onclick="selectCategory('Кормление', this)">
+            <button class="category-btn feed" data-label="Кормление">
                 <span>🍼 Кормление</span>
             </button>
-            <button class="category-btn play" data-label="Игра" onclick="selectCategory('Игра', this)">
+            <button class="category-btn play" data-label="Игра">
                 <span>🪇 Игра</span>
             </button>
         </div>
         <div class="quick-minutes" id="quickMinutes">
-            <button class="quick-btn" onclick="setMinutes(15)">15 мин</button>
-            <button class="quick-btn" onclick="setMinutes(30)">30 мин</button>
-            <button class="quick-btn" onclick="setMinutes(45)">45 мин</button>
-            <button class="quick-btn" onclick="setMinutes(60)">1 ч</button>
-            <button class="quick-btn" onclick="setMinutes(75)">1 ч 15 мин</button>
-            <button class="quick-btn" onclick="setMinutes(90)">1 ч 30 мин</button>
-            <button class="quick-btn" onclick="setMinutes(120)">2 ч</button>
+            <button class="quick-btn" data-minutes="15">15 мин</button>
+            <button class="quick-btn" data-minutes="30">30 мин</button>
+            <button class="quick-btn" data-minutes="45">45 мин</button>
+            <button class="quick-btn" data-minutes="60">1 ч</button>
+            <button class="quick-btn" data-minutes="75">1 ч 15 мин</button>
+            <button class="quick-btn" data-minutes="90">1 ч 30 мин</button>
+            <button class="quick-btn" data-minutes="120">2 ч</button>
         </div>
-        <div class="toggle-link" onclick="toggleManualInput()">Ввести минуты вручную</div>
+        <div class="toggle-link" id="toggleManual">Ввести минуты вручную</div>
         <div class="manual-input" id="manualInput">
             <input type="number" id="timeInput" min="0" placeholder="Введите минуты">
         </div>
-        <button class="add-time-btn" onclick="addTime()">Добавить время</button>
+        <button class="add-time-btn" id="addTimeBtn">Добавить время</button>
         <div class="timer-buttons">
-            <button id="timerBtn" class="timer-btn start" onclick="toggleTimer()">Старт</button>
+            <button id="timerBtn" class="timer-btn start">Старт</button>
         </div>
         <div id="timer">00:00</div>
         <div class="summary" id="summary"></div>
@@ -498,7 +498,9 @@
             loading: document.querySelector('.loading'),
             toast: document.getElementById('toast'),
             categoryButtons: document.querySelectorAll('.category-btn'),
-            quickButtons: document.querySelectorAll('.quick-btn')
+            quickButtons: document.querySelectorAll('.quick-btn'),
+            toggleManual: document.getElementById('toggleManual'),
+            addTimeBtn: document.getElementById('addTimeBtn')
         };
 
         // Инициализация при загрузке
@@ -537,10 +539,27 @@
             // Обработчики для быстрых кнопок
             elements.quickButtons.forEach(button => {
                 button.addEventListener('click', () => {
-                    const minutes = parseInt(button.textContent);
+                    const minutes = parseInt(button.getAttribute('data-minutes'));
                     setMinutes(minutes);
                 });
             });
+
+            // Обработчик для переключения ручного ввода
+            elements.toggleManual.addEventListener('click', toggleManualInput);
+
+            // Обработчик для добавления времени
+            elements.addTimeBtn.addEventListener('click', addTime);
+
+            // Обработчик для таймера
+            elements.timerBtn.addEventListener('click', toggleTimer);
+
+            // Обработчики для модального окна
+            document.querySelector('.menu-btn').addEventListener('click', openModal);
+            document.querySelector('.close-btn').addEventListener('click', closeModal);
+            document.querySelector('.modal-content button:nth-child(1)').addEventListener('click', showStats);
+            document.querySelector('.modal-content button:nth-child(2)').addEventListener('click', toggleTheme);
+            document.querySelector('.modal-content button:nth-child(3)').addEventListener('click', showAbout);
+            elements.resetLink.addEventListener('click', confirmReset);
         }
 
         // Показ загрузки
