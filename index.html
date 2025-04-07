@@ -1,55 +1,197 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Web App Fullscreen Demo</title>
+    <title>Telegram Mini App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
-            margin: 0;
-            padding: 20px;
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            background-color: #F3F4F6;
+            padding-bottom: 70px; /* Отступ для нижней панели */
         }
+
         .container {
-            text-align: center;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Отступ между карточками */
         }
-        button {
-            padding: 10px 20px;
+
+        .card {
+            background-color: #FFFFFF;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            min-height: 44px; /* Минимум для нажатия пальцем */
+        }
+
+        .card-icon {
+            font-size: 24px;
+            color: #2563EB;
+        }
+
+        .card-content {
+            flex-grow: 1;
+        }
+
+        .card-title {
             font-size: 16px;
-            margin: 10px;
+            font-weight: 600;
+            color: #1F2937;
+            margin: 0;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: #6B7280;
+            margin: 4px 0 0;
+        }
+
+        .card-button {
+            background-color: #2563EB;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 12px;
             cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .card-button:hover {
+            background-color: #1D4ED8;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #FFFFFF;
+            border-top: 1px solid #E5E7EB;
+            border-radius: 12px 12px 0 0;
+            padding: 8px 0;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #94A3B8;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 6px;
+            min-width: 44px;
+        }
+
+        .nav-item.active {
+            color: #2563EB;
+        }
+
+        .nav-item i {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 600px) {
+            .container {
+                padding: 12px;
+            }
+            .card {
+                padding: 12px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Telegram Web App Demo</h2>
-        <button onclick="toggleFullscreen()">Toggle Fullscreen</button>
-        <p id="status">Status: Windowed</p>
+        <!-- Блок "Напоминания" -->
+        <div class="card">
+            <i class="fas fa-bell card-icon"></i>
+            <div class="card-content">
+                <h3 class="card-title">Напоминания</h3>
+                <p class="card-subtitle">Следующее кормление в 12:30</p>
+            </div>
+            <button class="card-button"><i class="fas fa-plus"></i> Добавить</button>
+        </div>
+
+        <!-- Блок "Журнал развития" -->
+        <div class="card">
+            <i class="fas fa-chart-line card-icon"></i>
+            <div class="card-content">
+                <h3 class="card-title">Журнал</h3>
+                <p class="card-subtitle">Добавьте рост, вес или достижение</p>
+                <p class="card-subtitle">Вес: 6.5 кг</p>
+            </div>
+        </div>
+
+        <!-- Блок "Советы и рекомендации" -->
+        <div class="card">
+            <i class="fas fa-lightbulb card-icon"></i>
+            <div class="card-content">
+                <h3 class="card-title">Советы и рекомендации</h3>
+                <p class="card-subtitle">Как правильно выбрать питание для малыша</p>
+            </div>
+        </div>
+
+        <!-- Блок "Форум / Поддержка" -->
+        <div class="card">
+            <i class="fas fa-comments card-icon"></i>
+            <div class="card-content">
+                <h3 class="card-title">Форум / Поддержка</h3>
+            </div>
+            <button class="card-button">Задать вопрос</button>
+        </div>
     </div>
 
+    <!-- Нижняя панель навигации -->
+    <div class="bottom-nav">
+        <div class="nav-item active">
+            <i class="fas fa-home"></i>
+            <span>Домой</span>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-clock"></i>
+            <span>Напоминания</span>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-book"></i>
+            <span>Журнал</span>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-ellipsis-h"></i>
+            <span>Дополнительно</span>
+        </div>
+    </div>
+
+    <!-- Подключение Telegram Web Apps -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        // Инициализация Telegram Web App
-        const tg = window.Telegram.WebApp;
-        tg.ready();
+        // Инициализация Telegram Web Apps
+        Telegram.WebApp.ready();
 
-        // Функция переключения полноэкранного режима
-        function toggleFullscreen() {
-            if (!tg.isExpanded) {
-                tg.expand();  // Переход в полноэкранный режим
-                document.getElementById('status').textContent = 'Status: Fullscreen';
-            } else {
-                tg.collapse();  // Выход из полноэкранного режима
-                document.getElementById('status').textContent = 'Status: Windowed';
-            }
-        }
+        // Пример отправки данных боту при нажатии кнопки "Добавить"
+        document.querySelectorAll('.card-button')[0].addEventListener('click', () => {
+            Telegram.WebApp.sendData(JSON.stringify({ action: "add_reminder", time: "12:30" }));
+        });
 
-        // Проверка начального состояния
-        if (tg.isExpanded) {
-            document.getElementById('status').textContent = 'Status: Fullscreen';
-        }
+        // Пример для кнопки "Задать вопрос"
+        document.querySelectorAll('.card-button')[1].addEventListener('click', () => {
+            Telegram.WebApp.sendData(JSON.stringify({ action: "ask_question" }));
+        });
     </script>
 </body>
 </html>
