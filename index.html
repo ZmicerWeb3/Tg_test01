@@ -11,14 +11,15 @@
             margin: 0;
             padding: 0;
             background-color: #F3F4F6;
-            padding-bottom: 70px; /* Отступ для нижней панели */
+            padding-bottom: 70px;
         }
 
         .container {
             padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 10px; /* Отступ между карточками */
+            gap: 10px;
+            position: relative;
         }
 
         .card {
@@ -29,7 +30,7 @@
             align-items: center;
             gap: 12px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            min-height: 44px; /* Минимум для нажатия пальцем */
+            min-height: 44px;
         }
 
         .card-icon {
@@ -105,7 +106,48 @@
             margin-bottom: 2px;
         }
 
-        /* Адаптивность */
+        /* Секции с анимацией */
+        .section {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none; /* Неактивные секции не реагируют на клики */
+        }
+
+        .section.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+            position: relative;
+        }
+
+        /* Стили для журнала */
+        .journal-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .journal-entry:last-child {
+            border-bottom: none;
+        }
+
+        .journal-entry span {
+            font-size: 14px;
+            color: #1F2937;
+        }
+
+        .journal-entry .date {
+            font-size: 12px;
+            color: #6B7280;
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 12px;
@@ -118,78 +160,150 @@
 </head>
 <body>
     <div class="container">
-        <!-- Блок "Напоминания" -->
-        <div class="card">
-            <i class="fas fa-bell card-icon"></i>
-            <div class="card-content">
-                <h3 class="card-title">Напоминания</h3>
-                <p class="card-subtitle">Следующее кормление в 12:30</p>
+        <!-- Секция "Домой" -->
+        <div class="section active" data-section="home">
+            <div class="card">
+                <i class="fas fa-bell card-icon"></i>
+                <div class="card-content">
+                    <h3 class="card-title">Напоминания</h3>
+                    <p class="card-subtitle">Следующее кормление в 12:30</p>
+                </div>
+                <button class="card-button"><i class="fas fa-plus"></i> Добавить</button>
             </div>
-            <button class="card-button"><i class="fas fa-plus"></i> Добавить</button>
+            <div class="card">
+                <i class="fas fa-chart-line card-icon"></i>
+                <div class="card-content">
+                    <h3 class="card-title">Журнал</h3>
+                    <p class="card-subtitle">Добавьте рост, вес или достижение</p>
+                </div>
+            </div>
+            <div class="card">
+                <i class="fas fa-lightbulb card-icon"></i>
+                <div class="card-content">
+                    <h3 class="card-title">Советы и рекомендации</h3>
+                    <p class="card-subtitle">Как правильно выбрать питание</p>
+                </div>
+            </div>
+            <div class="card">
+                <i class="fas fa-comments card-icon"></i>
+                <div class="card-content">
+                    <h3 class="card-title">Форум / Поддержка</h3>
+                </div>
+                <button class="card-button">Задать вопрос</button>
+            </div>
         </div>
 
-        <!-- Блок "Журнал развития" -->
-        <div class="card">
-            <i class="fas fa-chart-line card-icon"></i>
-            <div class="card-content">
-                <h3 class="card-title">Журнал</h3>
-                <p class="card-subtitle">Добавьте рост, вес или достижение</p>
-                <p class="card-subtitle">Вес: 6.5 кг</p>
+        <!-- Секция "Напоминания" -->
+        <div class="section" data-section="reminders">
+            <div class="card">
+                <i class="fas fa-bell card-icon"></i>
+                <div class="card-content">
+                    <h3 class="card-title">Напоминания</h3>
+                    <p class="card-subtitle">Следующее кормление в 12:30</p>
+                </div>
+                <button class="card-button"><i class="fas fa-plus"></i> Добавить</button>
             </div>
         </div>
 
-        <!-- Блок "Советы и рекомендации" -->
-        <div class="card">
-            <i class="fas fa-lightbulb card-icon"></i>
-            <div class="card-content">
-                <h3 class="card-title">Советы и рекомендации</h3>
-                <p class="card-subtitle">Как правильно выбрать питание для малыша</p>
+        <!-- Секция "Журнал" -->
+        <div class="section" data-section="journal">
+            <div class="card">
+                <i class="fas fa-chart-line card-icon"></i>
+                <div class="card-content">
+                    <h3 class="card-title">Журнал</h3>
+                    <p class="card-subtitle">Добавьте рост, вес или достижение</p>
+                </div>
+                <button class="card-button"><i class="fas fa-plus"></i> Добавить</button>
+            </div>
+            <div class="card">
+                <div class="card-content" style="width: 100%;">
+                    <div class="journal-entry">
+                        <span>Вес: 6.5 кг</span>
+                        <span class="date">05.04.2025</span>
+                    </div>
+                    <div class="journal-entry">
+                        <span>Рост: 65 см</span>
+                        <span class="date">03.04.2025</span>
+                    </div>
+                    <div class="journal-entry">
+                        <span>Достижение: начал ползать</span>
+                        <span class="date">01.04.2025</span>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Блок "Форум / Поддержка" -->
-        <div class="card">
-            <i class="fas fa-comments card-icon"></i>
-            <div class="card-content">
-                <h3 class="card-title">Форум / Поддержка</h3>
+        <!-- Секция "Дополнительно" -->
+        <div class="section" data-section="more">
+            <div class="card">
+                <i class="fas fa-lightbulb card-icon"></i>
+                <div class="card-content">
+                    <h3 class="card-title">Советы и рекомендации</h3>
+                    <p class="card-subtitle">Как правильно выбрать питание</p>
+                </div>
             </div>
-            <button class="card-button">Задать вопрос</button>
+            <div class="card">
+                <i class="fas fa-comments card-icon"></i>
+                <div class="card-content">
+                    <h3 class="card-title">Форум / Поддержка</h3>
+                </div>
+                <button class="card-button">Задать вопрос</button>
+            </div>
         </div>
     </div>
 
     <!-- Нижняя панель навигации -->
     <div class="bottom-nav">
-        <div class="nav-item active">
+        <div class="nav-item active" data-nav="home">
             <i class="fas fa-home"></i>
             <span>Домой</span>
         </div>
-        <div class="nav-item">
+        <div class="nav-item" data-nav="reminders">
             <i class="fas fa-clock"></i>
             <span>Напоминания</span>
         </div>
-        <div class="nav-item">
+        <div class="nav-item" data-nav="journal">
             <i class="fas fa-book"></i>
             <span>Журнал</span>
         </div>
-        <div class="nav-item">
+        <div class="nav-item" data-nav="more">
             <i class="fas fa-ellipsis-h"></i>
             <span>Дополнительно</span>
         </div>
     </div>
 
-    <!-- Подключение Telegram Web Apps -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        // Инициализация Telegram Web Apps
         Telegram.WebApp.ready();
 
-        // Пример отправки данных боту при нажатии кнопки "Добавить"
+        // Навигация
+        const navItems = document.querySelectorAll('.nav-item');
+        const sections = document.querySelectorAll('.section');
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                // Убираем активный класс у всех пунктов меню
+                navItems.forEach(nav => nav.classList.remove('active'));
+                // Добавляем активный класс текущему пункту
+                item.classList.add('active');
+
+                // Скрываем все секции и показываем нужную
+                sections.forEach(section => section.classList.remove('active'));
+                const sectionId = item.getAttribute('data-nav');
+                document.querySelector(`.section[data-section="${sectionId}"]`).classList.add('active');
+            });
+        });
+
+        // Пример отправки данных боту
         document.querySelectorAll('.card-button')[0].addEventListener('click', () => {
             Telegram.WebApp.sendData(JSON.stringify({ action: "add_reminder", time: "12:30" }));
         });
 
-        // Пример для кнопки "Задать вопрос"
         document.querySelectorAll('.card-button')[1].addEventListener('click', () => {
+            Telegram.WebApp.sendData(JSON.stringify({ action: "add_journal_entry", type: "weight", value: "6.5 кг" }));
+        });
+
+        document.querySelectorAll('.card-button')[2].addEventListener('click', () => {
             Telegram.WebApp.sendData(JSON.stringify({ action: "ask_question" }));
         });
     </script>
